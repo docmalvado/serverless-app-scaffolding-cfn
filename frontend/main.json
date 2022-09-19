@@ -1,0 +1,18 @@
+[ 
+    {
+        "ParameterKey": "project",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "environment",
+        "ParameterValue": "dev"
+    },
+    {
+        "ParameterKey": "cfnBucketName",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "frontendSubdomain",
+        "ParameterValue": ""
+    }
+]

@@ -1,0 +1,101 @@
+Parameters:
+  bucketName:
+    Type: String
+  bucketDomainName:
+    Type: String
+  domain:
+    Type: String
+  subdomain:
+    Type: String
+  certificateARN:
+    Type: String
+  hostedZoneId:
+    Type: String
+Resources:
+  CloudFrontOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment:
+          Ref: bucketName
+
+  ReadPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: bucketName
+      PolicyDocument:
+        Statement:
+        - Action: s3:GetObject
+          Effect: Allow
+          Resource:
+            Fn::Sub: arn:aws:s3:::${bucketName}/*
+          Principal:
+            CanonicalUser:
+              Fn::GetAtt:
+              - CloudFrontOriginAccessIdentity
+              - S3CanonicalUserId
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        CustomErrorResponses:
+        - ErrorCode: 403
+          ResponseCode: 404
+          ResponsePagePath: "/error.html"
+        DefaultCacheBehavior:
+          AllowedMethods:
+          - GET
+          - HEAD
+          - OPTIONS
+          CachedMethods:
+          - GET
+          - HEAD
+          - OPTIONS
+          Compress: true
+          DefaultTTL: 3600
+          ForwardedValues:
+            Cookies:
+              Forward: none
+            QueryString: false
+          MaxTTL: 86400
+          MinTTL: 60
+          TargetOriginId: s3origin
+          ViewerProtocolPolicy: 'redirect-to-https'
+        DefaultRootObject: index.html
+        Enabled: true
+        HttpVersion: http2
+        Origins:
+        - DomainName: !Ref bucketDomainName
+          Id: s3origin
+          S3OriginConfig:
+            OriginAccessIdentity:
+              Fn::Sub: origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}
+        PriceClass: PriceClass_All
+        Aliases: 
+          - !Sub "${subdomain}.${domain}"
+        ViewerCertificate:
+          AcmCertificateArn: !Ref certificateARN
+          MinimumProtocolVersion: TLSv1.2_2018
+          SslSupportMethod: sni-only
+
+  RecordSet:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      AliasTarget:
+        DNSName:
+          Fn::GetAtt:
+          - CloudFrontDistribution
+          - DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+      Comment: website hosting
+      HostedZoneId: !Ref hostedZoneId
+      Name: !Sub "${subdomain}.${domain}"
+      Type: A
+
+Outputs:
+  distributionId:
+    Value: !Ref CloudFrontDistribution
+  distributionDomain:
+    Value: !GetAtt CloudFrontDistribution.DomainName
