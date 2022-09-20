@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Codepipeline Project
+
+Parameters:
+  project:
+    Type: String
+  environment:
+    Type: String
+    Description: Project's environment
+    Default: dev
+    AllowedValues:
+      - dev
+      - qa
+      - prod
+  artifactsBucketName:
+    Type: String
+  repositoryName:
+    Type: String
+  codePipelineRoleArn:
+    Type: String
+  gitConnectionArn:
+    Type: String
+  buildProjectName:
+    Type: String
+Resources:
+  CodePipelineProject:
+    Type: AWS::CodePipeline::Pipeline
+    Properties: 
+      Name: !Sub ${project}-${environment}-frontend-pipeline
+      ArtifactStore:
+        Location: !Ref artifactsBucketName
+        Type: S3
+      RestartExecutionOnUpdate: False
+      RoleArn: !Ref codePipelineRoleArn
+      Stages: 
+        - Name: Source
+          Actions: 
+            - Name: ApplicationSource
+              Namespace: SourceVariables
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection
+                Version: 1
+              Configuration:
+                ConnectionArn: !Ref gitConnectionArn
+                FullRepositoryId: !Ref repositoryName
+                BranchName: "main"
+                OutputArtifactFormat: "CODEBUILD_CLONE_REF"
+                DetectChanges: false
+              RunOrder: 1
+              OutputArtifacts:
+                - Name: Source
+        - Name: Build
+          Actions: 
+            - Name: Build
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref buildProjectName
+                EnvironmentVariables: 
+                  !Sub |
+                    [
+                      {
+                        "name": "ENVIRONMENT",
+                        "value": "${environment}",
+                        "type": "PLAINTEXT"
+                      }
+                    ]
+              RunOrder: 1
+              InputArtifacts:
+                - Name: Source
+              OutputArtifacts:
+                - Name: Build
+
+Outputs:
+  codePipelineProjectName:
+    Value: !Ref CodePipelineProject
+  codePipelineProjectArn:
+    Value: !Sub arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${CodePipelineProject}

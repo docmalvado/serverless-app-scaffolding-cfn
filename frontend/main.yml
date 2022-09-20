@@ -16,9 +16,39 @@ Parameters:
   cfnBucketName:
     Type: String
     Description: Bucket that store cfn modules
+  frontendRepository:
+    Type: String
+    Description: "E.g: owner/repo_name"
   frontendSubdomain:
     Type: String
-    Description: Frontend's subdomain
+    Description: "Subdomain for the frontend, E.g: www"
+    MinLength: "1"
+    MaxLength: "3"
+Metadata:
+  "AWS::CloudFormation::Interface":
+    ParameterGroups:
+      - Label:
+          default: Project Information
+        Parameters:
+          - project
+          - environment
+      - Label:
+          default: Other information
+        Parameters:
+          - cfnBucketName
+          - frontendRepository
+          - frontendSubdomain
+    ParameterLabels:
+      project:
+        default: "Project's name:"
+      environment:
+        default: "Project's environment:"
+      cfnBucketName:
+        default: "Cloudformation bucket:"
+      frontendRepository:
+        default: "Frontend repository:"
+      frontendSubdomain:
+        default: "Frontend Subdomain:"
 Resources:
   WebsiteBucket:
     Type: AWS::CloudFormation::Stack
@@ -45,14 +75,15 @@ Resources:
           Fn::ImportValue:
             !Sub "${project}-${environment}-commons-hostedZoneId"
 
-  # Pipeline:
-  #   Type: AWS::CloudFormation::Stack
-  #   Properties: 
-  #     TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/frontend/modules/pipeline/main.yml
-  #     Parameters: 
-  #       project: !Ref project
-  #       environment: !Ref environment
-  #       cfnBucketName: !Ref cfnBucketName
+  Pipeline:
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/frontend/modules/pipeline/main.yml
+      Parameters: 
+        project: !Ref project
+        environment: !Ref environment
+        cfnBucketName: !Ref cfnBucketName
+        frontendRepository: !Ref frontendRepository
 
 Outputs:
   websiteBucketName:

@@ -16,13 +16,40 @@ Parameters:
   cfnBucketName:
     Type: String
     Description: Bucket that store cfn modules
-  frontendSubdomain:
+  frontendRepository:
     Type: String
-    Description: Frontend's subdomain
 Resources:
-  WebsiteBucket:
+  Permissions:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/frontend/modules/s3.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/frontend/modules/pipeline/iam.yml
       Parameters: 
         project: !Ref project
+        environment: !Ref environment
+        artifactsBucketName: 
+          Fn::ImportValue:
+            !Sub "${project}-${environment}-commons-pipelineBucketName"
+  BuildProject:
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/frontend/modules/pipeline/codebuild.yml
+      Parameters: 
+        project: !Ref project
+        environment: !Ref environment
+        codeBuildRoleArn: !GetAtt Permissions.Outputs.buildRoleArn
+  PipelineProject:
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/frontend/modules/pipeline/codepipeline.yml
+      Parameters: 
+        project: !Ref project
+        environment: !Ref environment
+        artifactsBucketName: 
+          Fn::ImportValue:
+            !Sub "${project}-${environment}-commons-pipelineBucketName"
+        repositoryName: !Ref frontendRepository
+        codePipelineRoleArn: !GetAtt Permissions.Outputs.pipelineRoleArn
+        gitConnectionArn: 
+          Fn::ImportValue:
+            !Sub "${project}-${environment}-commons-gitConnectionARN"
+        buildProjectName: !GetAtt BuildProject.Outputs.codeBuildProjectName
