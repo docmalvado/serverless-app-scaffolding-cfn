@@ -59,9 +59,10 @@ Resources:
             post_build:
               commands:
                 # Prepare artifacts
-                - BUILD_FORLDER=v.${CODEBUILD_BUILD_NUMBER}
-                - mkdir $BUILD_FORLDER
-                - cp -rp build/* $BUILD_FORLDER/
+                - BUILD_FORLDER=build
+                # - BUILD_FORLDER=v.${CODEBUILD_BUILD_NUMBER}
+                # - mkdir $BUILD_FORLDER
+                # - cp -rp build/* $BUILD_FORLDER/
           artifacts:
             files:
               - $BUILD_FORLDER/**/*

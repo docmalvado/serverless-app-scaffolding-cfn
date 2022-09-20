@@ -13,6 +13,8 @@ Parameters:
       - prod
   artifactsBucketName:
     Type: String
+  deploymentBucketName:
+    Type: String
 Resources:
   BuildRole:
     Type: 'AWS::IAM::Role'
@@ -64,6 +66,16 @@ Resources:
                   - 'codebuild:StartBuildBatch'
                 Effect: Allow
                 Resource: '*'
+        - PolicyName: deployPermissions
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - s3:Put*
+                Effect: Allow
+                Resource:
+                  - !Sub 'arn:aws:s3:::${deploymentBucketName}'
+                  - !Sub 'arn:aws:s3:::${deploymentBucketName}/*'
         - PolicyName: ecrAccess
           PolicyDocument:
             Version: 2012-10-17

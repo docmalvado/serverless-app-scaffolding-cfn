@@ -18,6 +18,11 @@ Parameters:
     Description: Bucket that store cfn modules
   frontendRepository:
     Type: String
+  repositoryBranch:
+    Type: String
+    Default: main
+  deploymentBucket:
+    Type: String
 Resources:
   Permissions:
     Type: AWS::CloudFormation::Stack
@@ -29,6 +34,7 @@ Resources:
         artifactsBucketName: 
           Fn::ImportValue:
             !Sub "${project}-${environment}-commons-pipelineBucketName"
+        deploymentBucketName: !Ref deploymentBucket
   BuildProject:
     Type: AWS::CloudFormation::Stack
     Properties: 
@@ -48,8 +54,10 @@ Resources:
           Fn::ImportValue:
             !Sub "${project}-${environment}-commons-pipelineBucketName"
         repositoryName: !Ref frontendRepository
+        repositoryBranch: !Ref repositoryBranch
         codePipelineRoleArn: !GetAtt Permissions.Outputs.pipelineRoleArn
         gitConnectionArn: 
           Fn::ImportValue:
             !Sub "${project}-${environment}-commons-gitConnectionARN"
         buildProjectName: !GetAtt BuildProject.Outputs.codeBuildProjectName
+        deploymentBucket: !Ref deploymentBucket

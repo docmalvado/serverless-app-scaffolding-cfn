@@ -16,11 +16,16 @@ Parameters:
     Type: String
   repositoryName:
     Type: String
+  repositoryBranch:
+    Type: String
+    Default: main
   codePipelineRoleArn:
     Type: String
   gitConnectionArn:
     Type: String
   buildProjectName:
+    Type: String
+  deploymentBucket:
     Type: String
 Resources:
   CodePipelineProject:
@@ -36,7 +41,6 @@ Resources:
         - Name: Source
           Actions: 
             - Name: ApplicationSource
-              Namespace: SourceVariables
               ActionTypeId:
                 Category: Source
                 Owner: AWS
@@ -45,12 +49,13 @@ Resources:
               Configuration:
                 ConnectionArn: !Ref gitConnectionArn
                 FullRepositoryId: !Ref repositoryName
-                BranchName: "main"
+                BranchName: !Ref repositoryBranch
                 OutputArtifactFormat: "CODEBUILD_CLONE_REF"
                 DetectChanges: false
               RunOrder: 1
               OutputArtifacts:
                 - Name: Source
+              Namespace: SourceVariables
         - Name: Build
           Actions: 
             - Name: Build
@@ -75,7 +80,22 @@ Resources:
                 - Name: Source
               OutputArtifacts:
                 - Name: Build
-
+        - Name: Deploy
+          Actions: 
+            - Name: Deploy
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: S3
+                Version: 1
+              Configuration:
+                BucketName: !Ref deploymentBucket
+                Extract: 'true'
+                # ObjectKey: v1
+              RunOrder: 1
+              InputArtifacts:
+                - Name: Build
+              Namespace: DeployVariables
 Outputs:
   codePipelineProjectName:
     Value: !Ref CodePipelineProject

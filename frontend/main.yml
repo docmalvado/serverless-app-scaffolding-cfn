@@ -19,6 +19,10 @@ Parameters:
   frontendRepository:
     Type: String
     Description: "E.g: owner/repo_name"
+  repositoryBranch:
+    Type: String
+    Default: main
+    Description: Branch to deploy
   frontendSubdomain:
     Type: String
     Description: "Subdomain for the frontend, E.g: www"
@@ -37,6 +41,7 @@ Metadata:
         Parameters:
           - cfnBucketName
           - frontendRepository
+          - repositoryBranch
           - frontendSubdomain
     ParameterLabels:
       project:
@@ -47,6 +52,8 @@ Metadata:
         default: "Cloudformation bucket:"
       frontendRepository:
         default: "Frontend repository:"
+      repositoryBranch:
+        default: "Repository branch:"
       frontendSubdomain:
         default: "Frontend Subdomain:"
 Resources:
@@ -84,6 +91,8 @@ Resources:
         environment: !Ref environment
         cfnBucketName: !Ref cfnBucketName
         frontendRepository: !Ref frontendRepository
+        repositoryBranch: !Ref repositoryBranch
+        deploymentBucket: !GetAtt WebsiteBucket.Outputs.bucketName
 
 Outputs:
   websiteBucketName:
