@@ -1,0 +1,28 @@
+Parameters:
+  project:
+    Type: String
+    Description: Project's name
+    MinLength: "4"
+    MaxLength: "12"
+    AllowedPattern: ^(\d|\w)+$
+  environment:
+    Type: String
+    Description: Project's environment
+    Default: dev
+    AllowedValues:
+      - dev
+      - qa
+      - prod
+  cfnBucketName:
+    Type: String
+    Description: Bucket that store cfn modules
+  frontendSubdomain:
+    Type: String
+    Description: Frontend's subdomain
+Resources:
+  WebsiteBucket:
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/frontend/modules/s3.yml
+      Parameters: 
+        project: !Ref project

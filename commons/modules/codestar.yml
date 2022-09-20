@@ -17,4 +17,7 @@ Resources:
     Properties:
       ConnectionName: !Sub ${project}-${environment}-git-connection
       ProviderType: GitHub
+Outputs:
+  gitConnectionARN:
+    Value: !Ref GitConnection
       

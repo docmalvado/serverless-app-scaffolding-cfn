@@ -79,6 +79,13 @@ Resources:
         project: !Ref project
         environment: !Ref environment
 
+  PipelineBucket:
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/commons/modules/s3.yml
+      Parameters: 
+        project: !Ref project
+
 Outputs:
   certificateARN:
     Value: !GetAtt Certificate.Outputs.certificateARN
@@ -92,3 +99,15 @@ Outputs:
     Value: !If [isNonProd, !Sub '${environment}.${parentHostedZoneName}', !Ref parentHostedZoneName]
     Export:
       Name: !Sub "${project}-${environment}-commons-hostedZoneName"
+  gitConnectionARN:
+    Value: !GetAtt GitConnection.Outputs.gitConnectionARN
+    Export:
+      Name: !Sub "${project}-${environment}-commons-gitConnectionARN"
+  pipelineBucketName:
+    Value: !GetAtt PipelineBucket.Outputs.bucketName
+    Export:
+      Name: !Sub "${project}-${environment}-commons-pipelineBucketName"
+  pipelineBucketDomainName:
+    Value: !GetAtt PipelineBucket.Outputs.bucketDomainName
+    Export:
+      Name: !Sub "${project}-${environment}-commons-pipelineBucketDomainName"

@@ -55,6 +55,14 @@ Resources:
   #       cfnBucketName: !Ref cfnBucketName
 
 Outputs:
+  websiteBucketName:
+    Value: !GetAtt WebsiteBucket.Outputs.bucketName
+    Export:
+      Name: !Sub "${project}-${environment}-frontend-websiteBucketName"
+  websiteBucketDomainName:
+    Value: !GetAtt WebsiteBucket.Outputs.bucketDomainName
+    Export:
+      Name: !Sub "${project}-${environment}-frontend-websiteBucketDomainName"
   distributionId:
     Value: !GetAtt Distribution.Outputs.distributionId
     Export:

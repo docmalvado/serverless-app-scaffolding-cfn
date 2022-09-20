@@ -5,7 +5,7 @@
     },
     {
         "ParameterKey": "environment",
-        "ParameterValue": "dev"
+        "ParameterValue": ""
     },
     {
         "ParameterKey": "cfnBucketName",
