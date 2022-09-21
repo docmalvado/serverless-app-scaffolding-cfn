@@ -28,6 +28,10 @@ Parameters:
     Description: "Subdomain for the frontend, E.g: www"
     MinLength: "1"
     MaxLength: "3"
+  buildFolder:
+    Type: String
+    Default: build
+    Description: Build output folder
 Metadata:
   "AWS::CloudFormation::Interface":
     ParameterGroups:
@@ -43,6 +47,7 @@ Metadata:
           - frontendRepository
           - repositoryBranch
           - frontendSubdomain
+          - buildFolder
     ParameterLabels:
       project:
         default: "Project's name:"
@@ -55,7 +60,9 @@ Metadata:
       repositoryBranch:
         default: "Repository branch:"
       frontendSubdomain:
-        default: "Frontend Subdomain:"
+        default: "Frontend subdomain:"
+      buildFolder:
+        default: "Build folder:"
 Resources:
   WebsiteBucket:
     Type: AWS::CloudFormation::Stack
@@ -71,7 +78,8 @@ Resources:
       Parameters: 
         bucketName: !GetAtt WebsiteBucket.Outputs.bucketName
         bucketDomainName: !GetAtt WebsiteBucket.Outputs.bucketDomainName
-        domain: 
+        originPath: !Sub "/${buildFolder}"
+        domain:
           Fn::ImportValue:
             !Sub "${project}-${environment}-commons-hostedZoneName"
         subdomain: !Ref frontendSubdomain
@@ -92,6 +100,7 @@ Resources:
         cfnBucketName: !Ref cfnBucketName
         frontendRepository: !Ref frontendRepository
         repositoryBranch: !Ref repositoryBranch
+        buildFolder: !Ref buildFolder
         deploymentBucket: !GetAtt WebsiteBucket.Outputs.bucketName
 
 Outputs:

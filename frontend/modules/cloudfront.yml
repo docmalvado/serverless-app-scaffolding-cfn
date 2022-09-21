@@ -3,6 +3,9 @@ Parameters:
     Type: String
   bucketDomainName:
     Type: String
+  originPath:
+    Type: String
+    Default: /
   domain:
     Type: String
   subdomain:
@@ -11,13 +14,16 @@ Parameters:
     Type: String
   hostedZoneId:
     Type: String
-Resources:
-  CloudFrontOriginAccessIdentity:
-    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
-    Properties:
-      CloudFrontOriginAccessIdentityConfig:
-        Comment:
-          Ref: bucketName
+Resources:  
+  OriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties: 
+      OriginAccessControlConfig: 
+          Name: OAC
+          Description: Access to S3
+          OriginAccessControlOriginType: s3
+          SigningBehavior: always
+          SigningProtocol: sigv4
 
   ReadPolicy:
     Type: AWS::S3::BucketPolicy
@@ -26,15 +32,16 @@ Resources:
         Ref: bucketName
       PolicyDocument:
         Statement:
-          - Action: s3:GetObject
+          - Sid: AllowCloudFrontServicePrincipalReadOnly
+            Action: s3:GetObject
             Effect: Allow
             Resource:
               Fn::Sub: arn:aws:s3:::${bucketName}/*
             Principal:
-              CanonicalUser:
-                Fn::GetAtt:
-                  - CloudFrontOriginAccessIdentity
-                  - S3CanonicalUserId
+              Service: cloudfront.amazonaws.com
+            Condition: 
+              StringEquals:
+                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}
 
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
@@ -61,18 +68,18 @@ Resources:
             QueryString: false
           MaxTTL: 86400
           MinTTL: 60
-          TargetOriginId: s3origin
+          TargetOriginId: S3Bucket
           ViewerProtocolPolicy: 'redirect-to-https'
         DefaultRootObject: index.html
         Enabled: true
         HttpVersion: http2
         Origins:
-          - Id: s3origin
+          - Id: S3Bucket
+            OriginAccessControlId: !Ref OriginAccessControl
             DomainName: !Ref bucketDomainName
             S3OriginConfig:
-              OriginAccessIdentity:
-                Fn::Sub: origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}
-            OriginPath: /build
+              OriginAccessIdentity: ""
+            OriginPath: !Ref originPath
         PriceClass: PriceClass_All
         Aliases: 
           - !Sub "${subdomain}.${domain}"

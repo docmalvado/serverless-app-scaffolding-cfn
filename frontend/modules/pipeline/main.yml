@@ -21,6 +21,9 @@ Parameters:
   repositoryBranch:
     Type: String
     Default: main
+  buildFolder:
+    Type: String
+    Default: build
   deploymentBucket:
     Type: String
 Resources:
@@ -43,6 +46,7 @@ Resources:
         project: !Ref project
         environment: !Ref environment
         codeBuildRoleArn: !GetAtt Permissions.Outputs.buildRoleArn
+        buildFolder: !Ref buildFolder
   PipelineProject:
     Type: AWS::CloudFormation::Stack
     Properties: 

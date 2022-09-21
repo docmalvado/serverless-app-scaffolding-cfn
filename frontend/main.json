@@ -5,7 +5,7 @@
     },
     {
         "ParameterKey": "environment",
-        "ParameterValue": ""
+        "ParameterValue": "dev"
     },
     {
         "ParameterKey": "cfnBucketName",
@@ -18,5 +18,9 @@
     {
         "ParameterKey": "frontendSubdomain",
         "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "buildFolder",
+        "ParameterValue": "build"
     }
 ]
