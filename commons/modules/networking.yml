@@ -21,7 +21,6 @@ Parameters:
     MinLength: "9"
     MaxLength: "18"
     AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
-    Default: 172.16.0.0/18
   availabilityZone1:
     Type: "AWS::EC2::AvailabilityZone::Name"
     Description: Availability zone
@@ -34,65 +33,24 @@ Parameters:
     MinLength: "9"
     MaxLength: "18"
     AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
-    Default: 172.16.0.0/22
   publicSubnet02Address:
     Type: String
     Description: CIDR block
     MinLength: "9"
     MaxLength: "18"
     AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
-    Default: 172.16.4.0/22
   privateSubnet01Address:
     Type: String
     Description: CIDR block
     MinLength: "9"
     MaxLength: "18"
     AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
-    Default: 172.16.8.0/21
   privateSubnet02Address:
     Type: String
     Description: CIDR block
     MinLength: "9"
     MaxLength: "18"
     AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
-    Default: 172.16.16.0/21
-Metadata:
-  "AWS::CloudFormation::Interface":
-    ParameterGroups:
-      - Label:
-          default: Project Information
-        Parameters:
-          - project
-          - environment
-      - Label:
-          default: Network Configuration
-        Parameters:
-          - vpcNetworkAddress
-          - availabilityZone1
-          - availabilityZone2
-          - publicSubnet01Address
-          - publicSubnet02Address
-          - privateSubnet01Address
-          - privateSubnet02Address
-    ParameterLabels:
-      project:
-        default: "Project name:"
-      environment:
-        default: "Deployment environment:"
-      vpcNetworkAddress:
-        default: "VPC network address (CIDR Block):"
-      availabilityZone1:
-        default: "First availability zone:"
-      availabilityZone2:
-        default: "Second availability zone:"
-      publicSubnet01Address:
-        default: "Public subnet address for first AZ:"
-      publicSubnet02Address:
-        default: "Public subnet address for second AZ:"
-      privateSubnet01Address:
-        default: "Private subnet address on first AZ:"
-      privateSubnet02Address:
-        default: "Private subnet address on second AZ:"
 Rules:
   DifferentAZs:
     Assertions:
@@ -288,22 +246,16 @@ Outputs:
   vpcId:
     Description: VPC Id
     Value: !Ref VPC
-    Export:
-      Name: !Sub "${AWS::StackName}-vpcId"
   az01:
     Description: Availability Zone 1
     Value: !GetAtt 
       - PublicSubnet01
       - AvailabilityZone
-    Export:
-      Name: !Sub "${AWS::StackName}-az01"
   az02:
     Description: Availability Zone 2
     Value: !GetAtt 
       - PublicSubnet02
       - AvailabilityZone
-    Export:
-      Name: !Sub "${AWS::StackName}-az02"
   azList:
     Description: AZ Comma Separated List
     Value: 
@@ -311,18 +263,12 @@ Outputs:
         - ','
         - - !GetAtt PublicSubnet01.AvailabilityZone
           - !GetAtt PublicSubnet02.AvailabilityZone
-    Export:
-      Name: !Sub "${AWS::StackName}-azList"
   publicSubnet01Id:
     Description: Public subnet 1
     Value: !Ref PublicSubnet01
-    Export:
-      Name: !Sub "${AWS::StackName}-publicSubnet01Id"
   publicSubnet02Id:
     Description: Public subnet 2
     Value: !Ref PublicSubnet02
-    Export:
-      Name: !Sub "${AWS::StackName}-publicSubnet02Id"
   publicSubnetsIdList:
     Description: Public subnet Ids Comma Separated List
     Value: 
@@ -330,18 +276,12 @@ Outputs:
         - ','
         - - !Ref PublicSubnet01
           - !Ref PublicSubnet02
-    Export:
-      Name: !Sub "${AWS::StackName}-publicSubnetsIdList"
   privateSubnet01Id:
     Description: Private app subnet 1
     Value: !Ref PrivateSubnet01
-    Export:
-      Name: !Sub "${AWS::StackName}-privateSubnet01Id"
   privateSubnet02Id:
     Description: Private app subnet 2
     Value: !Ref PrivateSubnet02
-    Export:
-      Name: !Sub "${AWS::StackName}-privateSubnet02Id"
   privateSubnetsIdList:
     Description: Private subnet Ids Comma Separated List
     Value: 
@@ -349,5 +289,3 @@ Outputs:
         - ','
         - - !Ref PrivateSubnet01
           - !Ref PrivateSubnet02
-    Export:
-      Name: !Sub "${AWS::StackName}-privateSubnetsIdList"

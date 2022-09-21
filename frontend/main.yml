@@ -67,9 +67,9 @@ Resources:
   WebsiteBucket:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/frontend/modules/s3.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/commons/modules/s3.yml
       Parameters: 
-        project: !Ref project
+        bucketName: !Sub ${project}-${environment}-frontend-${AWS::Region}
 
   Distribution:
     Type: AWS::CloudFormation::Stack
@@ -81,14 +81,14 @@ Resources:
         originPath: !Sub "/${buildFolder}"
         domain:
           Fn::ImportValue:
-            !Sub "${project}-${environment}-commons-hostedZoneName"
+            !Sub "${project}-${environment}-base-hostedZoneName"
         subdomain: !Ref frontendSubdomain
         certificateARN:
           Fn::ImportValue:
-            !Sub "${project}-${environment}-commons-certificateARN"
+            !Sub "${project}-${environment}-base-certificateARN"
         hostedZoneId:
           Fn::ImportValue:
-            !Sub "${project}-${environment}-commons-hostedZoneId"
+            !Sub "${project}-${environment}-base-hostedZoneId"
 
   Pipeline:
     Type: AWS::CloudFormation::Stack

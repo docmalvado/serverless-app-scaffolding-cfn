@@ -10,11 +10,14 @@ Parameters:
       - dev
       - qa
       - prod
+  bucketName:
+    Type: String
+    Description: Bucket Name
 Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub ${project}-${environment}-pipeline-${AWS::Region}
+      BucketName: !Ref bucketName
 Outputs:
   bucketName:
     Value: !Ref S3Bucket

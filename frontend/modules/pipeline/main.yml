@@ -36,8 +36,9 @@ Resources:
         environment: !Ref environment
         artifactsBucketName: 
           Fn::ImportValue:
-            !Sub "${project}-${environment}-commons-pipelineBucketName"
+            !Sub "${project}-commons-pipelineBucketName"
         deploymentBucketName: !Ref deploymentBucket
+
   BuildProject:
     Type: AWS::CloudFormation::Stack
     Properties: 
@@ -47,6 +48,7 @@ Resources:
         environment: !Ref environment
         codeBuildRoleArn: !GetAtt Permissions.Outputs.buildRoleArn
         buildFolder: !Ref buildFolder
+        
   PipelineProject:
     Type: AWS::CloudFormation::Stack
     Properties: 
@@ -56,7 +58,7 @@ Resources:
         environment: !Ref environment
         artifactsBucketName: 
           Fn::ImportValue:
-            !Sub "${project}-${environment}-commons-pipelineBucketName"
+            !Sub "${project}-commons-pipelineBucketName"
         repositoryName: !Ref frontendRepository
         repositoryBranch: !Ref repositoryBranch
         codePipelineRoleArn: !GetAtt Permissions.Outputs.pipelineRoleArn

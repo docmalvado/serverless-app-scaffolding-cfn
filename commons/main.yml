@@ -17,12 +17,47 @@ Parameters:
   cfnBucketName:
     Type: String
     Description: Bucket that store cfn modules
-  parentHostedZoneId:
+  vpcNetworkAddress:
     Type: String
-    Description: This hosted zone must have been previously created
-  parentHostedZoneName:
+    Description: CIDR block
+    MinLength: "9"
+    MaxLength: "18"
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    Default: 172.16.0.0/18
+  availabilityZone1:
+    Type: "AWS::EC2::AvailabilityZone::Name"
+    Description: Availability zone
+  availabilityZone2:
+    Type: "AWS::EC2::AvailabilityZone::Name"
+    Description: Availability zone
+  publicSubnet01Address:
     Type: String
-    Description: This hosted zone must have been previously created
+    Description: CIDR block
+    MinLength: "9"
+    MaxLength: "18"
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    Default: 172.16.0.0/22
+  publicSubnet02Address:
+    Type: String
+    Description: CIDR block
+    MinLength: "9"
+    MaxLength: "18"
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    Default: 172.16.4.0/22
+  privateSubnet01Address:
+    Type: String
+    Description: CIDR block
+    MinLength: "9"
+    MaxLength: "18"
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    Default: 172.16.8.0/21
+  privateSubnet02Address:
+    Type: String
+    Description: CIDR block
+    MinLength: "9"
+    MaxLength: "18"
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    Default: 172.16.16.0/21
 Metadata:
   "AWS::CloudFormation::Interface":
     ParameterGroups:
@@ -32,11 +67,19 @@ Metadata:
           - project
           - environment
       - Label:
+          default: Network Configuration
+        Parameters:
+          - vpcNetworkAddress
+          - availabilityZone1
+          - availabilityZone2
+          - publicSubnet01Address
+          - publicSubnet02Address
+          - privateSubnet01Address
+          - privateSubnet02Address
+      - Label:
           default: Other information
         Parameters:
           - cfnBucketName
-          - parentHostedZoneId
-          - parentHostedZoneName
     ParameterLabels:
       project:
         default: "Project's name:"
@@ -44,32 +87,35 @@ Metadata:
         default: "Project's environment:"
       cfnBucketName:
         default: "Cloudformation bucket:"
-      parentHostedZoneId:
-        default: "Parent Hosted Zone Id:"
-      parentHostedZoneName:
-        default: "Parent Hosted Zone Name:"
-Conditions:
-  isNonProd: !Not 
-    - !Equals 
-      - !Ref environment
-      - prod
+      vpcNetworkAddress:
+        default: "VPC network address (CIDR Block):"
+      availabilityZone1:
+        default: "First availability zone:"
+      availabilityZone2:
+        default: "Second availability zone:"
+      publicSubnet01Address:
+        default: "Public subnet address for first AZ:"
+      publicSubnet02Address:
+        default: "Public subnet address for second AZ:"
+      privateSubnet01Address:
+        default: "Private subnet address on first AZ:"
+      privateSubnet02Address:
+        default: "Private subnet address on second AZ:"
 Resources:
-  HostedZone:
-    Type: AWS::CloudFormation::Stack
-    Condition: isNonProd
-    Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/commons/modules/route53.yml
-      Parameters: 
-        hostedZoneName: !Sub '${environment}.${parentHostedZoneName}'
-        parentHostedZoneId: !Ref parentHostedZoneId
-
-  Certificate:
+  Network:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/commons/modules/acm.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/commons/modules/networking.yml
       Parameters: 
-        hostedZoneName: !If [isNonProd, !Sub '${environment}.${parentHostedZoneName}', !Ref parentHostedZoneName]
-        hostedZoneId: !If [isNonProd, !GetAtt HostedZone.Outputs.hostedZoneId, !Ref parentHostedZoneId]
+        project: !Ref project
+        environment: !Ref environment
+        vpcNetworkAddress: !Ref vpcNetworkAddress
+        availabilityZone1: !Ref availabilityZone1
+        availabilityZone2: !Ref availabilityZone2
+        publicSubnet01Address: !Ref publicSubnet01Address
+        publicSubnet02Address: !Ref publicSubnet02Address
+        privateSubnet01Address: !Ref privateSubnet01Address
+        privateSubnet02Address: !Ref privateSubnet02Address
 
   GitConnection:
     Type: AWS::CloudFormation::Stack
@@ -85,29 +131,69 @@ Resources:
       TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/commons/modules/s3.yml
       Parameters: 
         project: !Ref project
+        environment: !Ref environment
+        bucketName: !Sub ${project}-pipeline-artifacts-${AWS::Region}
 
 Outputs:
-  certificateARN:
-    Value: !GetAtt Certificate.Outputs.certificateARN
+  vpcId:
+    Description: VPC Id
+    Value: !GetAtt Network.Outputs.vpcId
     Export:
-      Name: !Sub "${project}-${environment}-commons-certificateARN"
-  hostedZoneId:
-    Value: !If [isNonProd, !GetAtt HostedZone.Outputs.hostedZoneId, !Ref parentHostedZoneId]
+      Name: !Sub "${project}-commons-vpcId"
+  az01:
+    Description: Availability Zone 1
+    Value: !GetAtt Network.Outputs.az01
     Export:
-      Name: !Sub "${project}-${environment}-commons-hostedZoneId"
-  hostedZoneName:
-    Value: !If [isNonProd, !Sub '${environment}.${parentHostedZoneName}', !Ref parentHostedZoneName]
+      Name: !Sub "${project}-commons-az01"
+  az02:
+    Description: Availability Zone 2
+    Value: !GetAtt Network.Outputs.az02
     Export:
-      Name: !Sub "${project}-${environment}-commons-hostedZoneName"
+      Name: !Sub "${project}-commons-az02"
+  azList:
+    Description: AZ Comma Separated List
+    Value: !GetAtt Network.Outputs.azList
+    Export:
+      Name: !Sub "${project}-commons-azList"
+  publicSubnet01Id:
+    Description: Public subnet 1
+    Value: !GetAtt Network.Outputs.publicSubnet01Id
+    Export:
+      Name: !Sub "${project}-commons-publicSubnet01Id"
+  publicSubnet02Id:
+    Description: Public subnet 2
+    Value: !GetAtt Network.Outputs.publicSubnet02Id
+    Export:
+      Name: !Sub "${project}-commons-publicSubnet02Id"
+  publicSubnetsIdList:
+    Description: Public subnet Ids Comma Separated List
+    Value: !GetAtt Network.Outputs.publicSubnetsIdList
+    Export:
+      Name: !Sub "${project}-commons-publicSubnetsIdList"
+  privateSubnet01Id:
+    Description: Private app subnet 1
+    Value: !GetAtt Network.Outputs.privateSubnet01Id
+    Export:
+      Name: !Sub "${project}-commons-privateSubnet01Id"
+  privateSubnet02Id:
+    Description: Private app subnet 2
+    Value: !GetAtt Network.Outputs.privateSubnet02Id
+    Export:
+      Name: !Sub "${project}-commons-privateSubnet02Id"
+  privateSubnetsIdList:
+    Description: Private subnet Ids Comma Separated List
+    Value: !GetAtt Network.Outputs.privateSubnetsIdList
+    Export:
+      Name: !Sub "${project}-commons-privateSubnetsIdList"
   gitConnectionARN:
     Value: !GetAtt GitConnection.Outputs.gitConnectionARN
     Export:
-      Name: !Sub "${project}-${environment}-commons-gitConnectionARN"
+      Name: !Sub "${project}-commons-gitConnectionARN"
   pipelineBucketName:
     Value: !GetAtt PipelineBucket.Outputs.bucketName
     Export:
-      Name: !Sub "${project}-${environment}-commons-pipelineBucketName"
+      Name: !Sub "${project}-commons-pipelineBucketName"
   pipelineBucketDomainName:
     Value: !GetAtt PipelineBucket.Outputs.bucketDomainName
     Export:
-      Name: !Sub "${project}-${environment}-commons-pipelineBucketDomainName"
+      Name: !Sub "${project}-commons-pipelineBucketDomainName"
