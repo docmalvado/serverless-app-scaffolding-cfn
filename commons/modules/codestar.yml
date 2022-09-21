@@ -3,19 +3,11 @@ Parameters:
   project:
     Type: String
     Description: Project's name
-  environment:
-    Type: String
-    Description: Project's environment
-    Default: dev
-    AllowedValues:
-      - dev
-      - qa
-      - prod
 Resources:
   GitConnection:
     Type: AWS::CodeStarConnections::Connection
     Properties:
-      ConnectionName: !Sub ${project}-${environment}-git-connection
+      ConnectionName: !Sub ${project}-git-connection
       ProviderType: GitHub
 Outputs:
   gitConnectionARN:

@@ -6,14 +6,6 @@ Parameters:
     MinLength: "4"
     MaxLength: "12"
     AllowedPattern: ^(\d|\w)+$
-  environment:
-    Type: String
-    Description: Select one environment
-    Default: dev
-    AllowedValues:
-      - dev
-      - qa
-      - prod
   cfnBucketName:
     Type: String
     Description: Bucket that store cfn modules
@@ -65,7 +57,7 @@ Metadata:
           default: Project Information
         Parameters:
           - project
-          - environment
+          - cfnBucketName
       - Label:
           default: Network Configuration
         Parameters:
@@ -76,15 +68,9 @@ Metadata:
           - publicSubnet02Address
           - privateSubnet01Address
           - privateSubnet02Address
-      - Label:
-          default: Other information
-        Parameters:
-          - cfnBucketName
     ParameterLabels:
       project:
         default: "Project's name:"
-      environment:
-        default: "Project's environment:"
       cfnBucketName:
         default: "Cloudformation bucket:"
       vpcNetworkAddress:
@@ -108,7 +94,6 @@ Resources:
       TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/commons/modules/networking.yml
       Parameters: 
         project: !Ref project
-        environment: !Ref environment
         vpcNetworkAddress: !Ref vpcNetworkAddress
         availabilityZone1: !Ref availabilityZone1
         availabilityZone2: !Ref availabilityZone2
@@ -123,15 +108,12 @@ Resources:
       TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/commons/modules/codestar.yml
       Parameters: 
         project: !Ref project
-        environment: !Ref environment
 
   PipelineBucket:
     Type: AWS::CloudFormation::Stack
     Properties: 
       TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/commons/modules/s3.yml
       Parameters: 
-        project: !Ref project
-        environment: !Ref environment
         bucketName: !Sub ${project}-pipeline-artifacts-${AWS::Region}
 
 Outputs:

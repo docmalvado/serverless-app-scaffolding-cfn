@@ -7,14 +7,6 @@ Parameters:
     MinLength: "4"
     MaxLength: "12"
     AllowedPattern: ^(\d|\w)+$
-  environment:
-    Description: Deployment environment
-    Type: String
-    AllowedValues:
-      - dev
-      - qa
-      - prod
-    Default: dev
   vpcNetworkAddress:
     Type: String
     Description: CIDR block
@@ -59,10 +51,6 @@ Rules:
             - !Ref availabilityZone1
             - !Ref availabilityZone2
         AssertDescription: The Availability Zones must be different
-Conditions:
-  isProd: !Equals 
-    - !Ref environment
-    - prod
 Resources:
   VPC:
     Type: "AWS::EC2::VPC"
@@ -71,17 +59,13 @@ Resources:
       EnableDnsHostnames: True
       Tags:
         - Key: Name
-          Value: !Sub "vpc-${project}-${environment}"
-        - Key: Environment
-          Value: !Ref environment
+          Value: !Sub "vpc-${project}"
   InternetGateway:
     Type: "AWS::EC2::InternetGateway"
     Properties:
       Tags:
         - Key: Name
-          Value: !Sub "igw-${project}-${environment}"
-        - Key: Environment
-          Value: !Ref environment
+          Value: !Sub "igw-${project}"
   AttachIGW:
     Type: "AWS::EC2::VPCGatewayAttachment"
     Properties:
@@ -95,9 +79,7 @@ Resources:
       AvailabilityZone: !Ref availabilityZone1
       Tags:
         - Key: Name
-          Value: !Sub "pubsnet01-${project}-${environment}"
-        - Key: Environment
-          Value: !Ref environment
+          Value: !Sub "pubsnet01-${project}"
   PublicSubnet02:
     Type: "AWS::EC2::Subnet"
     Properties:
@@ -106,9 +88,7 @@ Resources:
       AvailabilityZone: !Ref availabilityZone2
       Tags:
         - Key: Name
-          Value: !Sub "pubsnet02-${project}-${environment}"
-        - Key: Environment
-          Value: !Ref environment
+          Value: !Sub "pubsnet02-${project}"
   PrivateSubnet01:
     Type: "AWS::EC2::Subnet"
     Properties:
@@ -117,9 +97,7 @@ Resources:
       AvailabilityZone: !Ref availabilityZone1
       Tags:
         - Key: Name
-          Value: !Sub "privsnet01-${project}-${environment}"
-        - Key: Environment
-          Value: !Ref environment
+          Value: !Sub "privsnet01-${project}"
   PrivateSubnet02:
     Type: "AWS::EC2::Subnet"
     Properties:
@@ -128,18 +106,14 @@ Resources:
       AvailabilityZone: !Ref availabilityZone2
       Tags:
         - Key: Name
-          Value: !Sub "privsnet02-${project}-${environment}"
-        - Key: Environment
-          Value: !Ref environment
+          Value: !Sub "privsnet02-${project}"
   EIP01:
     Type: "AWS::EC2::EIP"
     Properties:
       Domain: vpc
       Tags:
         - Key: Name
-          Value: !Sub "eip01-${project}-${environment}"
-        - Key: Environment
-          Value: !Ref environment
+          Value: !Sub "eip01-${project}"
   NatGateway01:
     DependsOn: AttachIGW
     Type: "AWS::EC2::NatGateway"
@@ -150,23 +124,17 @@ Resources:
       SubnetId: !Ref PublicSubnet01
       Tags:
         - Key: Name
-          Value: !Sub "natgw01-${project}-${environment}"
-        - Key: Environment
-          Value: !Ref environment
+          Value: !Sub "natgw01-${project}"
   EIP02:
     Type: "AWS::EC2::EIP"
-    Condition: isProd
     Properties:
       Domain: vpc
       Tags:
         - Key: Name
-          Value: !Sub "eip02-${project}-${environment}"
-        - Key: Environment
-          Value: !Ref environment
+          Value: !Sub "eip02-${project}"
   NatGateway02:
     DependsOn: AttachIGW
     Type: "AWS::EC2::NatGateway"
-    Condition: isProd
     Properties:
       AllocationId: !GetAtt 
         - EIP02
@@ -174,18 +142,14 @@ Resources:
       SubnetId: !Ref PublicSubnet02
       Tags:
         - Key: Name
-          Value: !Sub "natgw02-${project}-${environment}"
-        - Key: Environment
-          Value: !Ref environment
+          Value: !Sub "natgw02-${project}"
   PublicRouteTable:
     Type: "AWS::EC2::RouteTable"
     Properties:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub "pubrt-${project}-${environment}"
-        - Key: Environment
-          Value: !Ref environment
+          Value: !Sub "pubrt-${project}"
   PublicRoute:
     Type: "AWS::EC2::Route"
     Properties:
@@ -208,18 +172,14 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub "privrt01-${project}-${environment}"
-        - Key: Environment
-          Value: !Ref environment
+          Value: !Sub "privrt01-${project}"
   PrivateRouteTable02:
     Type: "AWS::EC2::RouteTable"
     Properties:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub "privrt01-${project}-${environment}"
-        - Key: Environment
-          Value: !Ref environment
+          Value: !Sub "privrt01-${project}"
   NatGateway01Route:
     Type: "AWS::EC2::Route"
     Properties:
@@ -231,7 +191,7 @@ Resources:
     Properties:
       RouteTableId: !Ref PrivateRouteTable02
       DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !If [isProd, !Ref NatGateway02, !Ref NatGateway01]
+      NatGatewayId: !Ref NatGateway02
   PrivateSubnet01RouteTableAssociation:
     Type: "AWS::EC2::SubnetRouteTableAssociation"
     Properties:
