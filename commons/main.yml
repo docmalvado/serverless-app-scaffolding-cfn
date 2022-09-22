@@ -116,6 +116,19 @@ Resources:
       Parameters: 
         bucketName: !Sub ${project}-pipeline-artifacts-${AWS::Region}
 
+  TokensSecret:
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/commons/modules/secrets-manager.yml
+      Parameters: 
+        project: !Ref project
+        name: tokens
+        secretTemplate: |
+          {
+            "DOCKER_HUB_USER": "",
+            "DOCKER_HUB_TOKEN": ""
+          }
+
 Outputs:
   vpcId:
     Description: VPC Id
@@ -179,3 +192,13 @@ Outputs:
     Value: !GetAtt PipelineBucket.Outputs.bucketDomainName
     Export:
       Name: !Sub "${project}-commons-pipelineBucketDomainName"
+  tokensSecretARN:
+    Description: Secret ARN
+    Value: !GetAtt TokensSecret.Outputs.secretARN
+    Export:
+      Name: !Sub "${project}-commons-tokensSecretARN"
+  tokensSecretName:
+    Description: Secret Name
+    Value: !GetAtt TokensSecret.Outputs.secretName
+    Export:
+      Name: !Sub "${project}-commons-tokensSecretName"

@@ -20,7 +20,7 @@ Resources:
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
     Properties: 
-      Name: !Sub ${project}-${environment}-build
+      Name: !Sub ${project}-${environment}-frontend-build
       Description: Build project
       Artifacts: 
         Type: CODEPIPELINE
