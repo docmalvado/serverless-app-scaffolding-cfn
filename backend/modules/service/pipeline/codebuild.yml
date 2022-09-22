@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Codebuild Project
+
+Parameters:
+  project:
+    Type: String
+  environment:
+    Type: String
+    Description: Project's environment
+    Default: dev
+    AllowedValues:
+      - dev
+      - qa
+      - prod
+  service:
+    Type: String
+  codeBuildRoleArn:
+    Type: String
+Resources:
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties: 
+      Name: !Sub ${project}-${environment}-${service}-build
+      Description: Build project
+      Artifacts: 
+        Type: CODEPIPELINE
+      BadgeEnabled: False
+      Environment: 
+        ComputeType: BUILD_GENERAL1_SMALL
+        EnvironmentVariables:
+          - Name: PROJECT
+            Type: PLAINTEXT
+            Value: !Ref project
+          - Name: ENVIRONMENT
+            Type: PLAINTEXT
+            Value: !Ref environment
+          - Name: SERVICE
+            Type: PLAINTEXT
+            Value: !Ref service
+          - Name: DOCKER_HUB_USER
+            Type: SECRETS_MANAGER
+            Value: !Sub secm-${project}-tokens:DOCKER_HUB_USER
+          - Name: DOCKER_HUB_TOKEN
+            Type: SECRETS_MANAGER
+            Value: !Sub secm-${project}-tokens:DOCKER_HUB_TOKEN
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:4.0
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: True
+        Type: LINUX_CONTAINER
+      QueuedTimeoutInMinutes: 60
+      ServiceRole: !Ref codeBuildRoleArn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: |
+          version: 0.2
+          phases:
+            install:
+              commands:
+                - echo $DOCKER_HUB_TOKEN | docker login --username $DOCKER_HUB_USER --password-stdin
+            pre_build:
+              commands:
+                - |
+                  data=(${CODEBUILD_BUILD_ARN//:/ })
+                  ACCOUNT_ID=${data[4]}
+                - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+            build:
+              commands:
+                - docker build
+                  -t $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/ecr-$PROJECT-$ENVIRONMENT-$SERVICE:latest 
+                  -t $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/ecr-$PROJECT-$ENVIRONMENT-$SERVICE:0.$CODEBUILD_BUILD_NUMBER .
+                - docker images
+            post_build:
+              commands:
+                - docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/ecr-$PROJECT-$ENVIRONMENT-$SERVICE --all-tags
+      TimeoutInMinutes: 60
+      Visibility: PRIVATE
+
+Outputs:
+  codeBuildProjectName:
+    Value: !Ref CodeBuildProject
+  codeBuildProjectArn:
+    Value: !GetAtt CodeBuildProject.Arn

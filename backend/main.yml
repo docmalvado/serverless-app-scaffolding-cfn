@@ -1,0 +1,148 @@
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  project:
+    Type: String
+    Description: Alphanumeric and underscore
+    MinLength: "4"
+    MaxLength: "12"
+    AllowedPattern: ^(\d|\w)+$
+  environment:
+    Type: String
+    Description: Select one environment
+    Default: dev
+    AllowedValues:
+      - dev
+      - qa
+      - prod
+  cfnBucketName:
+    Type: String
+    Description: Bucket that store cfn modules
+Metadata:
+  "AWS::CloudFormation::Interface":
+    ParameterGroups:
+      - Label:
+          default: Project Information
+        Parameters:
+          - project
+          - environment
+      - Label:
+          default: Other information
+        Parameters:
+          - cfnBucketName
+    ParameterLabels:
+      project:
+        default: "Project's name:"
+      environment:
+        default: "Project's environment:"
+      cfnBucketName:
+        default: "Cloudformation bucket:"
+Conditions:
+  isNonProd: !Not 
+    - !Equals 
+      - !Ref environment
+      - prod
+Mappings:
+  ServiceConfig:
+    nodejs: 
+      name: "nodejs"
+      basePath: "/nodejs"
+      healthCheckPath: "/health"
+      priority: 1
+      containerSize: 256|0.5GB
+      containerPort: 80
+      minContainers: 0
+      maxContainers: 3
+      autoScalingTargetValue: 40
+      repository: docmalvado/docker-mock-service-api-nodejs
+      branch: main
+Resources:
+  Cluster:
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/modules/cluster/main.yml
+      Parameters: 
+        project: !Ref project
+        environment: !Ref environment
+        cfnBucketName: !Ref cfnBucketName
+        publicLB: 'true'
+        backendSubDomain: api
+
+  ServiceNodeJS:
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/modules/service/main.yml
+      Parameters: 
+        project: !Ref project
+        environment: !Ref environment
+        cfnBucketName: !Ref cfnBucketName
+        serviceName: !FindInMap [ServiceConfig, nodejs, name]
+        clusterName: !GetAtt Cluster.Outputs.clusterName
+        backendRepository: !FindInMap [ServiceConfig, nodejs, repository]
+        repositoryBranch: !FindInMap [ServiceConfig, nodejs, branch]
+        loadBalancerSecurityGroupId: !GetAtt Cluster.Outputs.loadBalancerSecurityGroupId
+        loadBalancerListenerARN: !GetAtt Cluster.Outputs.loadBalancerListenerARN
+        namespaceId: !GetAtt Cluster.Outputs.namespaceId
+        containerSize: !FindInMap [ServiceConfig, nodejs, containerSize]
+        containerPort: !FindInMap [ServiceConfig, nodejs, containerPort]
+        healthCheckPath: !FindInMap [ServiceConfig, nodejs, healthCheckPath]
+        basePath: !FindInMap [ServiceConfig, nodejs, basePath]
+        priority: !FindInMap [ServiceConfig, nodejs, priority]
+        minContainers: !FindInMap [ServiceConfig, nodejs, minContainers]
+        maxContainers: !FindInMap [ServiceConfig, nodejs, maxContainers]
+        autoScalingTargetValue: !FindInMap [ServiceConfig, nodejs, autoScalingTargetValue]
+        autoScalingRoleARN: !GetAtt Cluster.Outputs.autoScalingRoleARN
+        executionRoleARN: !GetAtt Cluster.Outputs.executionRoleARN
+        containerInternalSecurityGroupId: !GetAtt Cluster.Outputs.containerInternalSecurityGroupId
+        deployService: "false"
+
+Outputs:
+  clusterName:
+    Description: Cluster Name
+    Value: !GetAtt Cluster.Outputs.clusterName
+    Export:
+      Name: !Sub '${project}-${environment}-backend-clusterName'
+  clusterARN:
+    Description: Cluster ARN
+    Value: !GetAtt Cluster.Outputs.clusterARN
+    Export:
+      Name: !Sub '${project}-${environment}-backend-clusterARN'
+  autoScalingRoleName:
+    Description: Auto Scaling Role Name
+    Value: !GetAtt Cluster.Outputs.autoScalingRoleName
+    Export:
+      Name: !Sub '${project}-${environment}-backend-autoScalingRoleName'
+  autoScalingRoleARN:
+    Description: Auto Scaling Role ARN
+    Value: !GetAtt Cluster.Outputs.autoScalingRoleARN
+    Export:
+      Name: !Sub '${project}-${environment}-backend-autoScalingRoleARN'
+  executionRoleARN:
+    Description: Execution Role ARN
+    Value: !GetAtt Cluster.Outputs.executionRoleARN
+    Export:
+      Name: !Sub '${project}-${environment}-backend-executionRoleARN'
+  containerInternalSecurityGroupId:
+    Description: Container Internal Security Group Id
+    Value: !GetAtt Cluster.Outputs.containerInternalSecurityGroupId
+    Export:
+      Name: !Sub '${project}-${environment}-backend-containerInternalSecurityGroupId'
+  loadBalancerEndpoint:
+    Description: Load Balancer Endpoint
+    Value: !GetAtt Cluster.Outputs.loadBalancerEndpoint
+    Export:
+      Name: !Sub '${project}-${environment}-backend-loadBalancerEndpoint'
+  loadBalancerSecurityGroupId:
+    Description: LB Security Group Id
+    Value: !GetAtt Cluster.Outputs.loadBalancerSecurityGroupId
+    Export:
+      Name: !Sub '${project}-${environment}-backend-loadBalancerSecurityGroupId'
+  loadBalancerListenerARN:
+    Description: LB Listener ARN
+    Value: !GetAtt Cluster.Outputs.loadBalancerListenerARN
+    Export:
+      Name: !Sub '${project}-${environment}-backend-loadBalancerListenerARN'
+  namespaceId:
+    Description: Namespace Id
+    Value: !GetAtt Cluster.Outputs.namespaceId
+    Export:
+      Name: !Sub '${project}-${environment}-backend-namespaceId'

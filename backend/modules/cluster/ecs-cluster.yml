@@ -1,0 +1,111 @@
+AWSTemplateFormatVersion: 2010-09-09 
+Description: Create a ECS Fargate Cluster.
+Parameters:
+  environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - qa
+      - prod
+  project:
+    Type: String
+  vpcId:
+    Type: String
+Conditions:
+  isProduction: !Equals 
+    - !Ref environment
+    - prod
+Resources:
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub 'ecs-${project}-${environment}-cluster'
+      ClusterSettings:
+      - Name: containerInsights
+        Value:
+          !If [isProduction, enabled, disabled]
+      CapacityProviders:
+        - FARGATE
+        - FARGATE_SPOT
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: FARGATE
+          Weight: 
+            !If [isProduction, 1, 0]
+        - CapacityProvider: FARGATE_SPOT
+          Weight: 
+            !If [isProduction, 0, 1]
+      Tags:
+        - Key: Name
+          Value: !Sub 'ecs-${project}-${environment}-cluster'
+
+  ContainerInternalSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub 'secg-${project}-${environment}-container-internal'
+      GroupDescription: !Sub 'SG for container ${project}-${environment}'
+      VpcId: !Ref vpcId
+      Tags:
+        - Key: Name
+          Value: !Sub 'secg-${project}-${environment}-container-internal'
+  
+  InternalCommunicationIngress:
+   Type: 'AWS::EC2::SecurityGroupIngress'
+   Properties:
+      GroupId: !Ref ContainerInternalSecurityGroup
+      IpProtocol: '-1'
+      SourceSecurityGroupId: !GetAtt ContainerInternalSecurityGroup.GroupId
+
+  # A role needed by ECS
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'iam-${project}-${environment}-execution-role'
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
+      Tags:
+        - Key: Name
+          Value: !Sub 'iam-${project}-${environment}-execution-role' 
+
+  # A role needed for auto scaling
+  AutoScalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'iam-${project}-${environment}-autoscaling-role'
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceAutoscaleRole'
+      Tags:
+        - Key: Name
+          Value: !Sub 'iam-${project}-${environment}-autoscaling-role'
+          
+Outputs:
+  clusterName:
+    Description: Cluster Name
+    Value: !Ref Cluster
+  clusterARN:
+    Description: Cluster ARN
+    Value: !GetAtt Cluster.Arn
+  containerInternalSecurityGroupId:
+    Description: Container Internal Security Group Id
+    Value: !Ref ContainerInternalSecurityGroup
+  autoScalingRoleName:
+    Description: Auto Scaling Role Name
+    Value: !Ref AutoScalingRole
+  autoScalingRoleARN:
+    Description: Auto Scaling Role ARN
+    Value: !GetAtt AutoScalingRole.Arn
+  executionRoleARN:
+    Description: Execution Role ARN
+    Value: !GetAtt ExecutionRole.Arn
