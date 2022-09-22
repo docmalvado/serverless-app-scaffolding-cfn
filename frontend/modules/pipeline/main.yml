@@ -64,6 +64,6 @@ Resources:
         codePipelineRoleArn: !GetAtt Permissions.Outputs.pipelineRoleArn
         gitConnectionArn: 
           Fn::ImportValue:
-            !Sub "${project}-${environment}-commons-gitConnectionARN"
+            !Sub "${project}-commons-gitConnectionARN"
         buildProjectName: !GetAtt BuildProject.Outputs.codeBuildProjectName
         deploymentBucket: !Ref deploymentBucket
