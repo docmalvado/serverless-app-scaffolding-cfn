@@ -18,7 +18,7 @@ Parameters:
   publicLB:
     Type: String
     Description: Do you want the load balancer facing internet?
-    Default: 'false'
+    Default: 'true'
     AllowedValues:
       - 'true'
       - 'false'

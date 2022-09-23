@@ -104,7 +104,7 @@ Parameters:
     Default: 40
   deployService:
     Type: String
-    Dscription: First time must be false
+    Description: First time must be false
     Default: 'false'
     AllowedValues:
       - 'true'
