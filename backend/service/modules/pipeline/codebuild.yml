@@ -75,7 +75,7 @@ Resources:
             post_build:
               commands:
                 - docker push $REPOSITORY_URI --all-tags
-                - printf '[{"name":"${SERVICE}","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+                - printf '[{"name":"%s","imageUri":"%s"}]' $SERVICE $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
           artifacts:
             files: imagedefinitions.json
       TimeoutInMinutes: 60
