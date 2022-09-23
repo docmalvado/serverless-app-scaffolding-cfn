@@ -238,7 +238,7 @@ Resources:
         taskRoleARN: !GetAtt TaskRoles.Outputs.taskRoleARN
         internalSecurityGroupId:  
           Fn::ImportValue:
-            Name: !Sub '${project}-${environment}-cluster-containerInternalSecurityGroupId'
+            !Sub '${project}-${environment}-cluster-containerInternalSecurityGroupId'
   
   Pipeline:
     Type: AWS::CloudFormation::Stack
