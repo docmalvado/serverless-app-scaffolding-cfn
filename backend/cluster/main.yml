@@ -38,84 +38,104 @@ Resources:
   ECSCluster:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/modules/cluster/ecs-cluster.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/cluster/modules/ecs-cluster.yml
       Parameters: 
         environment: !Ref environment
         project: !Ref project
         vpcId: 
           Fn::ImportValue:
-            !Sub ${project}-commons-vpcId
+            !Sub ${project}-foundations-vpcId
 
   DNSNamespace:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/modules/cluster/dns-namespace.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/cluster/modules/dns-namespace.yml
       Parameters: 
         environment: !Ref environment
         project: !Ref project
         namespace: !Sub "${project}.net"
         vpcId:
           Fn::ImportValue:
-            !Sub ${project}-commons-vpcId
+            !Sub ${project}-foundations-vpcId
   
   LoadBalancer:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/modules/cluster/load-balancer.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/cluster/modules/load-balancer.yml
       Parameters: 
         environment: !Ref environment
         project: !Ref project
         vpcId:
           Fn::ImportValue:
-            !Sub ${project}-commons-vpcId
+            !Sub ${project}-foundations-vpcId
         lbSubnetsIdList: 
           Fn::ImportValue:
-            !If [isPublicLB, !Sub "${project}-commons-publicSubnetsIdList", !Sub "${project}-commons-privateSubnetsIdList"]
+            !If [isPublicLB, !Sub "${project}-foundations-publicSubnetsIdList", !Sub "${project}-foundations-privateSubnetsIdList"]
         loadBalancerPort: !Ref loadBalancerPort
         publicLB: !Ref publicLB
         useHTTPS: !Ref useHTTPS
         certificateARN:
           Fn::ImportValue:
-            !Sub "${project}-${environment}-base-certificateARN"
+            !Sub "${project}-${environment}-commons-certificateARN"
         hostedZoneId:
           Fn::ImportValue:
-            !Sub "${project}-${environment}-base-hostedZoneId"
+            !Sub "${project}-${environment}-commons-hostedZoneId"
         loadbalancerDomainName:
           Fn::Sub:
             - ${backendSubDomain}.${domainName}
             - backendSubDomain: !Ref backendSubDomain
               domainName:
                 Fn::ImportValue:
-                  !Sub "${project}-${environment}-base-hostedZoneName"
+                  !Sub "${project}-${environment}-commons-hostedZoneName"
 
 Outputs:
   clusterName:
     Description: Cluster Name
     Value: !GetAtt ECSCluster.Outputs.clusterName
+    Export:
+      Name: !Sub '${project}-${environment}-cluster-clusterName'
   clusterARN:
     Description: Cluster ARN
     Value: !GetAtt ECSCluster.Outputs.clusterARN
+    Export:
+      Name: !Sub '${project}-${environment}-cluster-clusterARN'
   autoScalingRoleName:
     Description: Auto Scaling Role Name
     Value: !GetAtt ECSCluster.Outputs.autoScalingRoleName
+    Export:
+      Name: !Sub '${project}-${environment}-cluster-autoScalingRoleName'
   autoScalingRoleARN:
     Description: Auto Scaling Role ARN
     Value: !GetAtt ECSCluster.Outputs.autoScalingRoleARN
+    Export:
+      Name: !Sub '${project}-${environment}-cluster-autoScalingRoleARN'
   executionRoleARN:
     Description: Execution Role ARN
     Value: !GetAtt ECSCluster.Outputs.executionRoleARN
+    Export:
+      Name: !Sub '${project}-${environment}-cluster-executionRoleARN'
   containerInternalSecurityGroupId:
     Description: Container Internal Security Group Id
     Value: !GetAtt ECSCluster.Outputs.containerInternalSecurityGroupId
+    Export:
+      Name: !Sub '${project}-${environment}-cluster-containerInternalSecurityGroupId'
   loadBalancerEndpoint:
     Description: Endpoint
     Value: !GetAtt LoadBalancer.Outputs.loadBalancerEndpoint
+    Export:
+      Name: !Sub '${project}-${environment}-cluster-loadBalancerEndpoint'
   loadBalancerSecurityGroupId:
     Description: LB Security Group Id
     Value: !GetAtt LoadBalancer.Outputs.loadBalancerSecurityGroupId
+    Export:
+      Name: !Sub '${project}-${environment}-cluster-loadBalancerSecurityGroupId'
   loadBalancerListenerARN:
     Description: LB Listener ARN
     Value: !GetAtt LoadBalancer.Outputs.loadBalancerListenerARN
+    Export:
+      Name: !Sub '${project}-${environment}-cluster-loadBalancerListenerARN'
   namespaceId:
     Description: Namespace Id
     Value: !GetAtt DNSNamespace.Outputs.namespaceId
+    Export:
+      Name: !Sub '${project}-${environment}-cluster-namespaceId'

@@ -81,14 +81,14 @@ Resources:
         originPath: !Sub "/${buildFolder}"
         domain:
           Fn::ImportValue:
-            !Sub "${project}-${environment}-base-hostedZoneName"
+            !Sub "${project}-${environment}-commons-hostedZoneName"
         subdomain: !Ref frontendSubdomain
         certificateARN:
           Fn::ImportValue:
-            !Sub "${project}-${environment}-base-certificateARN"
+            !Sub "${project}-${environment}-commons-certificateARN"
         hostedZoneId:
           Fn::ImportValue:
-            !Sub "${project}-${environment}-base-hostedZoneId"
+            !Sub "${project}-${environment}-commons-hostedZoneId"
 
   Pipeline:
     Type: AWS::CloudFormation::Stack

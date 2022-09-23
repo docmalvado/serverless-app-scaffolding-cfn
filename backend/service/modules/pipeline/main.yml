@@ -18,7 +18,7 @@ Parameters:
   cfnBucketName:
     Type: String
     Description: Bucket that store cfn modules
-  backendRepository:
+  serviceRepository:
     Type: String
   repositoryBranch:
     Type: String
@@ -40,7 +40,7 @@ Resources:
         service: !Ref service
         artifactsBucketName: 
           Fn::ImportValue:
-            !Sub "${project}-commons-pipelineBucketName"
+            !Sub "${project}-foundations-pipelineBucketName"
 
   BuildProject:
     Type: AWS::CloudFormation::Stack
@@ -62,12 +62,12 @@ Resources:
         service: !Ref service
         artifactsBucketName: 
           Fn::ImportValue:
-            !Sub "${project}-commons-pipelineBucketName"
-        repositoryName: !Ref backendRepository
+            !Sub "${project}-foundations-pipelineBucketName"
+        repositoryName: !Ref serviceRepository
         repositoryBranch: !Ref repositoryBranch
         codePipelineRoleArn: !GetAtt Permissions.Outputs.pipelineRoleArn
         gitConnectionArn: 
           Fn::ImportValue:
-            !Sub "${project}-commons-gitConnectionARN"
+            !Sub "${project}-foundations-gitConnectionARN"
         buildProjectName: !GetAtt BuildProject.Outputs.codeBuildProjectName
         deployService: !Ref deployService
