@@ -33,7 +33,7 @@ Resources:
   Permissions:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/modules/service/pipeline/iam.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/service/modules/pipeline/iam.yml
       Parameters: 
         project: !Ref project
         environment: !Ref environment
@@ -45,7 +45,7 @@ Resources:
   BuildProject:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/modules/service/pipeline/codebuild.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/service/modules/pipeline/codebuild.yml
       Parameters: 
         project: !Ref project
         environment: !Ref environment
@@ -55,7 +55,7 @@ Resources:
   PipelineProject:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/modules/service/pipeline/codepipeline.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/service/modules/pipeline/codepipeline.yml
       Parameters: 
         project: !Ref project
         environment: !Ref environment
