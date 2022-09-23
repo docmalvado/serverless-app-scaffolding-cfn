@@ -91,7 +91,7 @@ Resources:
   Network:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/commons/modules/networking.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/foundations/modules/networking.yml
       Parameters: 
         project: !Ref project
         vpcNetworkAddress: !Ref vpcNetworkAddress
@@ -105,21 +105,21 @@ Resources:
   GitConnection:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/commons/modules/codestar.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/foundations/modules/codestar.yml
       Parameters: 
         project: !Ref project
 
   PipelineBucket:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/commons/modules/s3.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/foundations/modules/s3.yml
       Parameters: 
         bucketName: !Sub ${project}-pipeline-artifacts-${AWS::Region}
 
   TokensSecret:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/commons/modules/secrets-manager.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/foundations/modules/secrets-manager.yml
       Parameters: 
         project: !Ref project
         name: tokens

@@ -176,7 +176,7 @@ Resources:
         - Key: Name
           Value: !Sub 'secg-${project}-${environment}-${serviceName}-container'
   
-  TargetGroup:
+  TargetGroupA:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       HealthCheckIntervalSeconds: 30
@@ -185,7 +185,7 @@ Resources:
       HealthCheckTimeoutSeconds: 5
       UnhealthyThresholdCount: 2
       HealthyThresholdCount: 2
-      Name: !Sub 'elb-${project}-${environment}-${serviceName}-tg'
+      Name: !Sub 'elb-${project}-${environment}-${serviceName}-tg-a'
       Port: !Ref containerPort
       Protocol: HTTP
       TargetGroupAttributes:
@@ -195,14 +195,35 @@ Resources:
       VpcId: !Ref vpcId
       Tags:
         - Key: Name
-          Value: !Sub 'elb-${project}-${environment}-${serviceName}-tg'
+          Value: !Sub 'elb-${project}-${environment}-${serviceName}-tg-a'
+
+  TargetGroupB:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      # will look for a 200 status code by default unless specified otherwise
+      HealthCheckPath: !Ref healthCheckPath
+      HealthCheckTimeoutSeconds: 5
+      UnhealthyThresholdCount: 2
+      HealthyThresholdCount: 2
+      Name: !Sub 'elb-${project}-${environment}-${serviceName}-tg-b'
+      Port: !Ref containerPort
+      Protocol: HTTP
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 60 # default is 300
+      TargetType: ip
+      VpcId: !Ref vpcId
+      Tags:
+        - Key: Name
+          Value: !Sub 'elb-${project}-${environment}-${serviceName}-tg-b'
   
   # Create a rule on the load balancer for routing traffic to the target group
   LoadBalancerRule:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:
       Actions:
-        - TargetGroupArn: !Ref 'TargetGroup'
+        - TargetGroupArn: !Ref TargetGroupA
           Type: 'forward'
       Conditions:
         - Field: path-pattern
@@ -258,7 +279,7 @@ Resources:
       LoadBalancers:
         - ContainerName: !Ref serviceName
           ContainerPort: !Ref containerPort
-          TargetGroupArn: !Ref TargetGroup
+          TargetGroupArn: !Ref TargetGroupA
       ServiceRegistries:
         - RegistryArn: !GetAtt DiscoveryService.Arn
           Port: !Ref containerPort
