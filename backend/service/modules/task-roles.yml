@@ -10,12 +10,14 @@ Parameters:
       - dev
       - qa
       - prod
+  service:
+    Type: String
 Resources:
   # A role for the containers
   TaskRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub 'iam-${project}-${environment}-task-role'
+      RoleName: !Sub 'iam-${project}-${environment}-${service}-task-role'
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
@@ -29,7 +31,7 @@ Resources:
       #   -
       Tags:
         - Key: Name
-          Value: !Sub 'iam-${project}-${environment}-task-role'
+          Value: !Sub 'iam-${project}-${environment}-${service}-task-role'
 
 Outputs:
   taskRoleARN:

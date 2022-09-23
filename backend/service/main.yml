@@ -182,6 +182,7 @@ Resources:
       Parameters: 
         project: !Ref project
         environment: !Ref environment
+        service: !Ref serviceName
 
   ImageRepository:
     Type: AWS::CloudFormation::Stack

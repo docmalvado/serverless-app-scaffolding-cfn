@@ -99,6 +99,21 @@ Resources:
                   - 'ecr:DescribeImages'
                 Effect: Allow
                 Resource: '*'
+        - PolicyName: ecsDeploy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - 'ecs:*'
+                Effect: Allow
+                Resource: '*'
+              - Action:
+                  - 'iam:PassRole'
+                Effect: Allow
+                Resource: 
+                  - !Sub arn:aws:iam::${AWS::AccountId}:role/iam-${project}-${environment}-${service}-task-role
+                  - !Sub arn:aws:iam::${AWS::AccountId}:role/iam-${project}-${environment}-execution-role
+              
 
   CommonPolicies:
     Type: AWS::IAM::Policy

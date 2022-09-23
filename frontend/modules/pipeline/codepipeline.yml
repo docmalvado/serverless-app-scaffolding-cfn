@@ -80,6 +80,7 @@ Resources:
                 - Name: Source
               OutputArtifacts:
                 - Name: Build
+              Namespace: BuildVariables
         - Name: Deploy
           Actions: 
             - Name: Deploy
