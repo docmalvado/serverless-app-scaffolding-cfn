@@ -1,6 +1,8 @@
 AWSTemplateFormatVersion: 2010-09-09 
 Description: Deploy a ECS + Fargate common resources.
 Parameters:
+  project:
+    Type: String
   environment:
     Type: String
     Default: dev
@@ -8,8 +10,6 @@ Parameters:
       - dev
       - qa
       - prod
-  project:
-    Type: String
   cfnBucketName:
     Type: String
   loadBalancerPort:
@@ -17,19 +17,53 @@ Parameters:
     Default: 80
   publicLB:
     Type: String
+    Description: Do you want the load balancer facing internet?
     Default: 'false'
     AllowedValues:
       - 'true'
       - 'false'
   useHTTPS:
     Type: String
+    Description: Do you want to use HTTPS certificate?
     Default: 'true'
     AllowedValues:
       - 'true'
       - 'false'
   backendSubDomain:
     Type: String
+    Description: "Subdomain for the backend, E.g: api"
     Default: api
+Metadata:
+  "AWS::CloudFormation::Interface":
+    ParameterGroups:
+      - Label:
+          default: Project Information
+        Parameters:
+          - project
+          - environment
+      - Label:
+          default: Other information
+        Parameters:
+          - cfnBucketName
+          - loadBalancerPort
+          - publicLB
+          - useHTTPS
+          - backendSubDomain
+    ParameterLabels:
+      project:
+        default: "Project's name:"
+      environment:
+        default: "Project's environment:"
+      cfnBucketName:
+        default: "Cloudformation bucket:"
+      loadBalancerPort:
+        default: "Load balancer port:"
+      backendSubDomain:
+        default: "Backend subdomain:"
+      publicLB:
+        default: "Is the LB Public?"
+      useHTTPS:
+        default: "Use HTTPS?"
 Conditions:
   isPublicLB: !Equals 
     - !Ref publicLB
