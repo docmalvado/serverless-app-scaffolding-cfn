@@ -62,16 +62,22 @@ Resources:
                 - |
                   data=(${CODEBUILD_BUILD_ARN//:/ })
                   ACCOUNT_ID=${data[4]}
+                - |
+                  REPOSITORY_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/ecr-$PROJECT-$ENVIRONMENT-$SERVICE
+                  IMAGE_TAG=0.$CODEBUILD_BUILD_NUMBER
                 - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
             build:
               commands:
                 - docker build
-                  -t $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/ecr-$PROJECT-$ENVIRONMENT-$SERVICE:latest 
-                  -t $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/ecr-$PROJECT-$ENVIRONMENT-$SERVICE:0.$CODEBUILD_BUILD_NUMBER .
+                  -t $REPOSITORY_URI:latest 
+                  -t $REPOSITORY_URI:$IMAGE_TAG .
                 - docker images
             post_build:
               commands:
-                - docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/ecr-$PROJECT-$ENVIRONMENT-$SERVICE --all-tags
+                - docker push $REPOSITORY_URI --all-tags
+                - printf '[{"name":"${SERVICE}","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+          artifacts:
+            files: imagedefinitions.json
       TimeoutInMinutes: 60
       Visibility: PRIVATE
 

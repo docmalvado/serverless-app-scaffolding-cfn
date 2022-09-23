@@ -169,7 +169,7 @@ Metadata:
       autoScalingTargetValue:
         default: "Autoscaling threshold:"
       deployService:
-        default: "Deploy service:"
+        default: "Deploy service?"
 Conditions:
   doDeploy: !Equals 
     - !Ref deployService
