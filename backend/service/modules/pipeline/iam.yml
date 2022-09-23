@@ -128,10 +128,6 @@ Outputs:
     Value: !GetAtt 
       - BuildRole
       - Arn
-  deployRoleArn:
-    Value: !GetAtt 
-      - DeployRole
-      - Arn
   pipelineRoleArn:
     Value: !GetAtt 
       - PipelineRole
