@@ -14,8 +14,6 @@ Parameters:
       - prod
   codeBuildRoleArn:
     Type: String
-  buildFolder:
-    Type: String
 Resources:
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
@@ -27,10 +25,6 @@ Resources:
       BadgeEnabled: False
       Environment: 
         ComputeType: BUILD_GENERAL1_SMALL
-        EnvironmentVariables:
-          - Name: BUILD_FOLDER
-            Type: PLAINTEXT
-            Value: !Ref buildFolder
         Image: aws/codebuild/amazonlinux2-x86_64-standard:4.0
         ImagePullCredentialsType: CODEBUILD
         PrivilegedMode: True
@@ -39,25 +33,7 @@ Resources:
       ServiceRole: !Ref codeBuildRoleArn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: |
-          version: 0.2
-          env:
-            shell: /bin/sh
-          phases:
-            install:
-              runtime-versions:
-                nodejs: latest
-              commands:
-                # Install node dependencies
-                - npm install
-            build:
-              commands:
-                # Build project
-                - npm run build
-          artifacts:
-            files:
-              - '**/*'
-            base-directory: $BUILD_FOLDER
+        BuildSpec: buildspec.yml
       TimeoutInMinutes: 60
       Visibility: PRIVATE
 
