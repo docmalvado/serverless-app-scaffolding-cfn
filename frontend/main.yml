@@ -26,6 +26,7 @@ Parameters:
   frontendSubdomain:
     Type: String
     Description: "Subdomain for the frontend, E.g: www"
+    Default: www
     MinLength: "1"
     MaxLength: "3"
   buildFolder:
@@ -78,7 +79,7 @@ Resources:
       Parameters: 
         bucketName: !GetAtt WebsiteBucket.Outputs.bucketName
         bucketDomainName: !GetAtt WebsiteBucket.Outputs.bucketDomainName
-        originPath: !Sub "/${buildFolder}"
+        # originPath: /
         domain:
           Fn::ImportValue:
             !Sub "${project}-${environment}-commons-hostedZoneName"

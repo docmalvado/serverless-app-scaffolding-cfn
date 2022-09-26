@@ -28,9 +28,6 @@ Resources:
       Environment: 
         ComputeType: BUILD_GENERAL1_SMALL
         EnvironmentVariables:
-          - Name: ENVIRONMENT
-            Type: PLAINTEXT
-            Value: ""
           - Name: BUILD_FOLDER
             Type: PLAINTEXT
             Value: !Ref buildFolder
@@ -46,32 +43,21 @@ Resources:
           version: 0.2
           env:
             shell: /bin/sh
-            variables:
-              PROFILE_NAME: "builder"
           phases:
             install:
               runtime-versions:
                 nodejs: latest
               commands:
-                - npm -v
-                - node -v
                 # Install node dependencies
                 - npm install
             build:
               commands:
                 # Build project
                 - npm run build
-            post_build:
-              commands:
-                # Prepare artifacts
-                - OUTPUT_FOLDER=$BUILD_FOLDER
-                # - OUTPUT_FOLDER=v.${CODEBUILD_BUILD_NUMBER}
-                # - mkdir $OUTPUT_FOLDER
-                # - cp -rp BUILD_FOLDER/* $OUTPUT_FOLDER/
           artifacts:
             files:
-              - $OUTPUT_FOLDER/**/*
-            name: BUILD
+              - '**/*'
+            base-directory: $BUILD_FOLDER
       TimeoutInMinutes: 60
       Visibility: PRIVATE
 

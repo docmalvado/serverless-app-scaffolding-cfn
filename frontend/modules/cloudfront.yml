@@ -5,7 +5,7 @@ Parameters:
     Type: String
   originPath:
     Type: String
-    Default: /
+    Default: ''
   domain:
     Type: String
   subdomain:
@@ -14,6 +14,14 @@ Parameters:
     Type: String
   hostedZoneId:
     Type: String
+Conditions:
+  noOriginPath: !Or
+    - !Equals 
+      - !Ref originPath
+      - '/'
+    - !Equals 
+      - !Ref originPath
+      - ''
 Resources:  
   OriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
@@ -79,7 +87,7 @@ Resources:
             DomainName: !Ref bucketDomainName
             S3OriginConfig:
               OriginAccessIdentity: ""
-            OriginPath: !Ref originPath
+            OriginPath: !If [noOriginPath, !Ref AWS::NoValue, !Ref originPath]
         PriceClass: PriceClass_All
         Aliases: 
           - !Sub "${subdomain}.${domain}"
