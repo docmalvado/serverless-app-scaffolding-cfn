@@ -58,7 +58,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Condition: isNonProd
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/commons/modules/route53.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/shared/modules/route53.yml
       Parameters: 
         hostedZoneName: !Sub '${environment}.${parentHostedZoneName}'
         parentHostedZoneId: !Ref parentHostedZoneId
@@ -66,7 +66,7 @@ Resources:
   Certificate:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/commons/modules/acm.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/shared/modules/acm.yml
       Parameters: 
         hostedZoneName: !If [isNonProd, !Sub '${environment}.${parentHostedZoneName}', !Ref parentHostedZoneName]
         hostedZoneId: !If [isNonProd, !GetAtt HostedZone.Outputs.hostedZoneId, !Ref parentHostedZoneId]
@@ -75,12 +75,12 @@ Outputs:
   certificateARN:
     Value: !GetAtt Certificate.Outputs.certificateARN
     Export:
-      Name: !Sub "${project}-${environment}-commons-certificateARN"
+      Name: !Sub "${project}-${environment}-shared-certificateARN"
   hostedZoneId:
     Value: !If [isNonProd, !GetAtt HostedZone.Outputs.hostedZoneId, !Ref parentHostedZoneId]
     Export:
-      Name: !Sub "${project}-${environment}-commons-hostedZoneId"
+      Name: !Sub "${project}-${environment}-shared-hostedZoneId"
   hostedZoneName:
     Value: !If [isNonProd, !Sub '${environment}.${parentHostedZoneName}', !Ref parentHostedZoneName]
     Export:
-      Name: !Sub "${project}-${environment}-commons-hostedZoneName"
+      Name: !Sub "${project}-${environment}-shared-hostedZoneName"

@@ -33,7 +33,7 @@ Resources:
         environment: !Ref environment
         artifactsBucketName: 
           Fn::ImportValue:
-            !Sub "${project}-foundations-pipelineBucketName"
+            !Sub "${project}-base-pipelineBucketName"
         deploymentBucketName: !Ref deploymentBucket
 
   BuildProject:
@@ -54,12 +54,12 @@ Resources:
         environment: !Ref environment
         artifactsBucketName: 
           Fn::ImportValue:
-            !Sub "${project}-foundations-pipelineBucketName"
+            !Sub "${project}-base-pipelineBucketName"
         repositoryName: !Ref frontendRepository
         repositoryBranch: !Ref repositoryBranch
         codePipelineRoleArn: !GetAtt Permissions.Outputs.pipelineRoleArn
         gitConnectionArn: 
           Fn::ImportValue:
-            !Sub "${project}-foundations-gitConnectionARN"
+            !Sub "${project}-base-gitConnectionARN"
         buildProjectName: !GetAtt BuildProject.Outputs.codeBuildProjectName
         deploymentBucket: !Ref deploymentBucket

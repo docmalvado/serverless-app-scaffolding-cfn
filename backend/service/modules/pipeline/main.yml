@@ -40,7 +40,7 @@ Resources:
         service: !Ref service
         artifactsBucketName: 
           Fn::ImportValue:
-            !Sub "${project}-foundations-pipelineBucketName"
+            !Sub "${project}-base-pipelineBucketName"
 
   BuildProject:
     Type: AWS::CloudFormation::Stack
@@ -62,12 +62,12 @@ Resources:
         service: !Ref service
         artifactsBucketName: 
           Fn::ImportValue:
-            !Sub "${project}-foundations-pipelineBucketName"
+            !Sub "${project}-base-pipelineBucketName"
         repositoryName: !Ref serviceRepository
         repositoryBranch: !Ref repositoryBranch
         codePipelineRoleArn: !GetAtt Permissions.Outputs.pipelineRoleArn
         gitConnectionArn: 
           Fn::ImportValue:
-            !Sub "${project}-foundations-gitConnectionARN"
+            !Sub "${project}-base-gitConnectionARN"
         buildProjectName: !GetAtt BuildProject.Outputs.codeBuildProjectName
         deployService: !Ref deployService

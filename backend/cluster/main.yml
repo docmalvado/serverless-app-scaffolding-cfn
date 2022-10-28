@@ -78,7 +78,7 @@ Resources:
         project: !Ref project
         vpcId: 
           Fn::ImportValue:
-            !Sub ${project}-foundations-vpcId
+            !Sub ${project}-base-vpcId
 
   DNSNamespace:
     Type: AWS::CloudFormation::Stack
@@ -90,7 +90,7 @@ Resources:
         namespace: !Sub "${project}.net"
         vpcId:
           Fn::ImportValue:
-            !Sub ${project}-foundations-vpcId
+            !Sub ${project}-base-vpcId
   
   LoadBalancer:
     Type: AWS::CloudFormation::Stack
@@ -101,26 +101,39 @@ Resources:
         project: !Ref project
         vpcId:
           Fn::ImportValue:
-            !Sub ${project}-foundations-vpcId
+            !Sub ${project}-base-vpcId
         lbSubnetsIdList: 
           Fn::ImportValue:
-            !If [isPublicLB, !Sub "${project}-foundations-publicSubnetsIdList", !Sub "${project}-foundations-privateSubnetsIdList"]
+            !If [isPublicLB, !Sub "${project}-base-publicSubnetsIdList", !Sub "${project}-base-privateSubnetsIdList"]
         loadBalancerPort: !Ref loadBalancerPort
         publicLB: !Ref publicLB
         useHTTPS: !Ref useHTTPS
         certificateARN:
           Fn::ImportValue:
-            !Sub "${project}-${environment}-commons-certificateARN"
+            !Sub "${project}-${environment}-shared-certificateARN"
         hostedZoneId:
           Fn::ImportValue:
-            !Sub "${project}-${environment}-commons-hostedZoneId"
+            !Sub "${project}-${environment}-shared-hostedZoneId"
         loadbalancerDomainName:
           Fn::Sub:
             - ${backendSubDomain}.${domainName}
             - backendSubDomain: !Ref backendSubDomain
               domainName:
                 Fn::ImportValue:
-                  !Sub "${project}-${environment}-commons-hostedZoneName"
+                  !Sub "${project}-${environment}-shared-hostedZoneName"
+
+  TokensSecret:
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/cluster/modules/secrets-manager.yml
+      Parameters: 
+        project: !Ref project
+        name: tokens
+        secretTemplate: |
+          {
+            "DOCKER_HUB_USER": "",
+            "DOCKER_HUB_TOKEN": ""
+          }
 
 Outputs:
   clusterName:
@@ -173,3 +186,13 @@ Outputs:
     Value: !GetAtt DNSNamespace.Outputs.namespaceId
     Export:
       Name: !Sub '${project}-${environment}-cluster-namespaceId'
+  tokensSecretARN:
+    Description: Secret ARN
+    Value: !GetAtt TokensSecret.Outputs.secretARN
+    Export:
+      Name: !Sub "${project}-${environment}-cluster-tokensSecretARN"
+  tokensSecretName:
+    Description: Secret Name
+    Value: !GetAtt TokensSecret.Outputs.secretName
+    Export:
+      Name: !Sub "${project}-${environment}-cluster-tokensSecretName"

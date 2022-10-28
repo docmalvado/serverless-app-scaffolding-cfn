@@ -91,7 +91,7 @@ Resources:
   Network:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/foundations/modules/networking.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/base/modules/networking.yml
       Parameters: 
         project: !Ref project
         vpcNetworkAddress: !Ref vpcNetworkAddress
@@ -105,100 +105,77 @@ Resources:
   GitConnection:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/foundations/modules/codestar.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/base/modules/codestar.yml
       Parameters: 
         project: !Ref project
 
   PipelineBucket:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/foundations/modules/s3.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/base/modules/s3.yml
       Parameters: 
         bucketName: !Sub ${project}-pipeline-artifacts-${AWS::Region}
-
-  TokensSecret:
-    Type: AWS::CloudFormation::Stack
-    Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/foundations/modules/secrets-manager.yml
-      Parameters: 
-        project: !Ref project
-        name: tokens
-        secretTemplate: |
-          {
-            "DOCKER_HUB_USER": "",
-            "DOCKER_HUB_TOKEN": ""
-          }
 
 Outputs:
   vpcId:
     Description: VPC Id
     Value: !GetAtt Network.Outputs.vpcId
     Export:
-      Name: !Sub "${project}-foundations-vpcId"
+      Name: !Sub "${project}-base-vpcId"
   az01:
     Description: Availability Zone 1
     Value: !GetAtt Network.Outputs.az01
     Export:
-      Name: !Sub "${project}-foundations-az01"
+      Name: !Sub "${project}-base-az01"
   az02:
     Description: Availability Zone 2
     Value: !GetAtt Network.Outputs.az02
     Export:
-      Name: !Sub "${project}-foundations-az02"
+      Name: !Sub "${project}-base-az02"
   azList:
     Description: AZ Comma Separated List
     Value: !GetAtt Network.Outputs.azList
     Export:
-      Name: !Sub "${project}-foundations-azList"
+      Name: !Sub "${project}-base-azList"
   publicSubnet01Id:
     Description: Public subnet 1
     Value: !GetAtt Network.Outputs.publicSubnet01Id
     Export:
-      Name: !Sub "${project}-foundations-publicSubnet01Id"
+      Name: !Sub "${project}-base-publicSubnet01Id"
   publicSubnet02Id:
     Description: Public subnet 2
     Value: !GetAtt Network.Outputs.publicSubnet02Id
     Export:
-      Name: !Sub "${project}-foundations-publicSubnet02Id"
+      Name: !Sub "${project}-base-publicSubnet02Id"
   publicSubnetsIdList:
     Description: Public subnet Ids Comma Separated List
     Value: !GetAtt Network.Outputs.publicSubnetsIdList
     Export:
-      Name: !Sub "${project}-foundations-publicSubnetsIdList"
+      Name: !Sub "${project}-base-publicSubnetsIdList"
   privateSubnet01Id:
     Description: Private app subnet 1
     Value: !GetAtt Network.Outputs.privateSubnet01Id
     Export:
-      Name: !Sub "${project}-foundations-privateSubnet01Id"
+      Name: !Sub "${project}-base-privateSubnet01Id"
   privateSubnet02Id:
     Description: Private app subnet 2
     Value: !GetAtt Network.Outputs.privateSubnet02Id
     Export:
-      Name: !Sub "${project}-foundations-privateSubnet02Id"
+      Name: !Sub "${project}-base-privateSubnet02Id"
   privateSubnetsIdList:
     Description: Private subnet Ids Comma Separated List
     Value: !GetAtt Network.Outputs.privateSubnetsIdList
     Export:
-      Name: !Sub "${project}-foundations-privateSubnetsIdList"
+      Name: !Sub "${project}-base-privateSubnetsIdList"
   gitConnectionARN:
     Value: !GetAtt GitConnection.Outputs.gitConnectionARN
     Export:
-      Name: !Sub "${project}-foundations-gitConnectionARN"
+      Name: !Sub "${project}-base-gitConnectionARN"
   pipelineBucketName:
     Value: !GetAtt PipelineBucket.Outputs.bucketName
     Export:
-      Name: !Sub "${project}-foundations-pipelineBucketName"
+      Name: !Sub "${project}-base-pipelineBucketName"
   pipelineBucketDomainName:
     Value: !GetAtt PipelineBucket.Outputs.bucketDomainName
     Export:
-      Name: !Sub "${project}-foundations-pipelineBucketDomainName"
-  tokensSecretARN:
-    Description: Secret ARN
-    Value: !GetAtt TokensSecret.Outputs.secretARN
-    Export:
-      Name: !Sub "${project}-foundations-tokensSecretARN"
-  tokensSecretName:
-    Description: Secret Name
-    Value: !GetAtt TokensSecret.Outputs.secretName
-    Export:
-      Name: !Sub "${project}-foundations-tokensSecretName"
+      Name: !Sub "${project}-base-pipelineBucketDomainName"

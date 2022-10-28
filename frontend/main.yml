@@ -74,14 +74,14 @@ Resources:
         bucketDomainName: !GetAtt WebsiteBucket.Outputs.bucketDomainName
         domain:
           Fn::ImportValue:
-            !Sub "${project}-${environment}-commons-hostedZoneName"
+            !Sub "${project}-${environment}-shared-hostedZoneName"
         subdomain: !Ref frontendSubdomain
         certificateARN:
           Fn::ImportValue:
-            !Sub "${project}-${environment}-commons-certificateARN"
+            !Sub "${project}-${environment}-shared-certificateARN"
         hostedZoneId:
           Fn::ImportValue:
-            !Sub "${project}-${environment}-commons-hostedZoneId"
+            !Sub "${project}-${environment}-shared-hostedZoneId"
 
   Pipeline:
     Type: AWS::CloudFormation::Stack

@@ -207,7 +207,7 @@ Resources:
             !Sub '${project}-${environment}-cluster-clusterName'
         vpcId: 
           Fn::ImportValue:
-            !Sub ${project}-foundations-vpcId
+            !Sub ${project}-base-vpcId
         loadBalancerSecurityGroupId:
           Fn::ImportValue:
             !Sub '${project}-${environment}-cluster-loadBalancerSecurityGroupId'
@@ -216,7 +216,7 @@ Resources:
             !Sub '${project}-${environment}-cluster-loadBalancerListenerARN'
         serviceSubnetsIdList: 
           Fn::ImportValue:
-            !Sub "${project}-foundations-privateSubnetsIdList"
+            !Sub "${project}-base-privateSubnetsIdList"
         namespaceId: 
           Fn::ImportValue:
             !Sub '${project}-${environment}-cluster-namespaceId'
