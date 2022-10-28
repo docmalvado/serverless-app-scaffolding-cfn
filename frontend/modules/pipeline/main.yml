@@ -21,7 +21,11 @@ Parameters:
   repositoryBranch:
     Type: String
     Default: main
+  artifactsBucketName:
+    Type: String
   deploymentBucket:
+    Type: String
+  gitConnectionArn:
     Type: String
 Resources:
   Permissions:
@@ -31,9 +35,7 @@ Resources:
       Parameters: 
         project: !Ref project
         environment: !Ref environment
-        artifactsBucketName: 
-          Fn::ImportValue:
-            !Sub "${project}-commons-pipelineBucketName"
+        artifactsBucketName: !Ref artifactsBucketName
         deploymentBucketName: !Ref deploymentBucket
 
   BuildProject:
@@ -52,14 +54,10 @@ Resources:
       Parameters: 
         project: !Ref project
         environment: !Ref environment
-        artifactsBucketName: 
-          Fn::ImportValue:
-            !Sub "${project}-commons-pipelineBucketName"
+        artifactsBucketName: !Ref artifactsBucketName
         repositoryName: !Ref frontendRepository
         repositoryBranch: !Ref repositoryBranch
         codePipelineRoleArn: !GetAtt Permissions.Outputs.pipelineRoleArn
-        gitConnectionArn: 
-          Fn::ImportValue:
-            !Sub "${project}-commons-gitConnectionARN"
+        gitConnectionArn: !Ref gitConnectionArn
         buildProjectName: !GetAtt BuildProject.Outputs.codeBuildProjectName
         deploymentBucket: !Ref deploymentBucket

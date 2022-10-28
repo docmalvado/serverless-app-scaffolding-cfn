@@ -29,6 +29,14 @@ Parameters:
     AllowedValues:
       - 'true'
       - 'false'
+  ecsClusterName:
+    Type: String
+  ecsServiceName:
+    Type: String
+  artifactsBucketName:
+    Type: String
+  gitConnectionArn:
+    Type: String
 Resources:
   Permissions:
     Type: AWS::CloudFormation::Stack
@@ -38,9 +46,7 @@ Resources:
         project: !Ref project
         environment: !Ref environment
         service: !Ref service
-        artifactsBucketName: 
-          Fn::ImportValue:
-            !Sub "${project}-commons-pipelineBucketName"
+        artifactsBucketName: !Ref artifactsBucketName
 
   BuildProject:
     Type: AWS::CloudFormation::Stack
@@ -60,14 +66,12 @@ Resources:
         project: !Ref project
         environment: !Ref environment
         service: !Ref service
-        artifactsBucketName: 
-          Fn::ImportValue:
-            !Sub "${project}-commons-pipelineBucketName"
+        artifactsBucketName: !Ref artifactsBucketName
         repositoryName: !Ref serviceRepository
         repositoryBranch: !Ref repositoryBranch
         codePipelineRoleArn: !GetAtt Permissions.Outputs.pipelineRoleArn
-        gitConnectionArn: 
-          Fn::ImportValue:
-            !Sub "${project}-commons-gitConnectionARN"
+        gitConnectionArn: !Ref gitConnectionArn
         buildProjectName: !GetAtt BuildProject.Outputs.codeBuildProjectName
+        ecsClusterName: !Ref ecsClusterName
+        ecsServiceName: !Ref ecsServiceName
         deployService: !Ref deployService

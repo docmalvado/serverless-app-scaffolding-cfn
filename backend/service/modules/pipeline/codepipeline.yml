@@ -33,6 +33,10 @@ Parameters:
     AllowedValues:
       - 'true'
       - 'false'
+  ecsClusterName:
+    Type: String
+  ecsServiceName:
+    Type: String
   deploymentTimeout:
     Type: String
     Default: '5'
@@ -105,10 +109,8 @@ Resources:
                   Provider: ECS
                   Version: 1
                 Configuration:
-                  ClusterName:
-                    Fn::ImportValue:
-                      !Sub '${project}-${environment}-cluster-clusterName'
-                  ServiceName: !Sub 'ecs-${project}-${environment}-${service}-service'
+                  ClusterName: !Ref ecsClusterName
+                  ServiceName: !Ref ecsServiceName
                   FileName: imagedefinitions.json
                   DeploymentTimeout: !Ref deploymentTimeout
                 RunOrder: 1

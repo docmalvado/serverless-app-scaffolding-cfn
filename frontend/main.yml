@@ -93,7 +93,13 @@ Resources:
         cfnBucketName: !Ref cfnBucketName
         frontendRepository: !Ref frontendRepository
         repositoryBranch: !Ref repositoryBranch
+        artifactsBucketName:
+          Fn::ImportValue:
+            !Sub "${project}-commons-pipelineBucketName"
         deploymentBucket: !GetAtt WebsiteBucket.Outputs.bucketName
+        gitConnectionArn:
+          Fn::ImportValue:
+            !Sub "${project}-commons-gitConnectionARN"
 
 Outputs:
   websiteBucketName:

@@ -312,6 +312,14 @@ Resources:
         serviceRepository: !Ref serviceRepository
         repositoryBranch: !Ref repositoryBranch
         deployService: !Ref deployService
+        ecsClusterName: !Sub 'ecs-${project}-${environment}-cluster'
+        ecsServiceName: !Sub 'ecs-${project}-${environment}-${serviceName}-service'
+        artifactsBucketName:
+          Fn::ImportValue:
+            !Sub "${project}-commons-pipelineBucketName"
+        gitConnectionArn: 
+          Fn::ImportValue:
+            !Sub "${project}-commons-gitConnectionARN"
 
 Outputs:
   loadBalancerEndpoint:
