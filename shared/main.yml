@@ -130,9 +130,10 @@ Resources:
   Network:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/base/modules/networking.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/shared/modules/networking.yml
       Parameters: 
         project: !Ref project
+        environment: !Ref environment
         vpcNetworkAddress: !Ref vpcNetworkAddress
         availabilityZone1: !Ref availabilityZone1
         availabilityZone2: !Ref availabilityZone2
