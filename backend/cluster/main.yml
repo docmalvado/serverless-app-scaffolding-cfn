@@ -41,7 +41,7 @@ Resources:
         project: !Ref project
         vpcId: 
           Fn::ImportValue:
-            !Sub ${project}-base-vpcId
+            !Sub ${project}-${environment}-shared-vpcId
 
   DNSNamespace:
     Type: AWS::CloudFormation::Stack
@@ -53,7 +53,7 @@ Resources:
         namespace: !Sub "${project}.net"
         vpcId:
           Fn::ImportValue:
-            !Sub ${project}-base-vpcId
+            !Sub ${project}-${environment}-shared-vpcId
 
   TokensSecret:
     Type: AWS::CloudFormation::Stack

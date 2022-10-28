@@ -17,6 +17,47 @@ Parameters:
   cfnBucketName:
     Type: String
     Description: Bucket that store cfn modules
+  vpcNetworkAddress:
+    Type: String
+    Description: CIDR block
+    MinLength: "9"
+    MaxLength: "18"
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    Default: 172.16.0.0/18
+  availabilityZone1:
+    Type: "AWS::EC2::AvailabilityZone::Name"
+    Description: Availability zone
+  availabilityZone2:
+    Type: "AWS::EC2::AvailabilityZone::Name"
+    Description: Availability zone
+  publicSubnet01Address:
+    Type: String
+    Description: CIDR block
+    MinLength: "9"
+    MaxLength: "18"
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    Default: 172.16.0.0/22
+  publicSubnet02Address:
+    Type: String
+    Description: CIDR block
+    MinLength: "9"
+    MaxLength: "18"
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    Default: 172.16.4.0/22
+  privateSubnet01Address:
+    Type: String
+    Description: CIDR block
+    MinLength: "9"
+    MaxLength: "18"
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    Default: 172.16.8.0/21
+  privateSubnet02Address:
+    Type: String
+    Description: CIDR block
+    MinLength: "9"
+    MaxLength: "18"
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    Default: 172.16.16.0/21
   parentHostedZoneId:
     Type: String
     Description: This hosted zone must have been previously created
@@ -32,6 +73,16 @@ Metadata:
           - project
           - environment
       - Label:
+          default: Network Configuration
+        Parameters:
+          - vpcNetworkAddress
+          - availabilityZone1
+          - availabilityZone2
+          - publicSubnet01Address
+          - publicSubnet02Address
+          - privateSubnet01Address
+          - privateSubnet02Address
+      - Label:
           default: Other information
         Parameters:
           - cfnBucketName
@@ -44,6 +95,20 @@ Metadata:
         default: "Project's environment:"
       cfnBucketName:
         default: "Cloudformation bucket:"
+      vpcNetworkAddress:
+        default: "VPC network address (CIDR Block):"
+      availabilityZone1:
+        default: "First availability zone:"
+      availabilityZone2:
+        default: "Second availability zone:"
+      publicSubnet01Address:
+        default: "Public subnet address for first AZ:"
+      publicSubnet02Address:
+        default: "Public subnet address for second AZ:"
+      privateSubnet01Address:
+        default: "Private subnet address on first AZ:"
+      privateSubnet02Address:
+        default: "Private subnet address on second AZ:"
       parentHostedZoneId:
         default: "Parent Hosted Zone Id:"
       parentHostedZoneName:
@@ -54,6 +119,20 @@ Conditions:
       - !Ref environment
       - prod
 Resources:
+  Network:
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/base/modules/networking.yml
+      Parameters: 
+        project: !Ref project
+        vpcNetworkAddress: !Ref vpcNetworkAddress
+        availabilityZone1: !Ref availabilityZone1
+        availabilityZone2: !Ref availabilityZone2
+        publicSubnet01Address: !Ref publicSubnet01Address
+        publicSubnet02Address: !Ref publicSubnet02Address
+        privateSubnet01Address: !Ref privateSubnet01Address
+        privateSubnet02Address: !Ref privateSubnet02Address
+
   HostedZone:
     Type: AWS::CloudFormation::Stack
     Condition: isNonProd
@@ -72,6 +151,56 @@ Resources:
         hostedZoneId: !If [isNonProd, !GetAtt HostedZone.Outputs.hostedZoneId, !Ref parentHostedZoneId]
 
 Outputs:
+  vpcId:
+    Description: VPC Id
+    Value: !GetAtt Network.Outputs.vpcId
+    Export:
+      Name: !Sub "${project}-${environment}-shared-vpcId"
+  az01:
+    Description: Availability Zone 1
+    Value: !GetAtt Network.Outputs.az01
+    Export:
+      Name: !Sub "${project}-${environment}-shared-az01"
+  az02:
+    Description: Availability Zone 2
+    Value: !GetAtt Network.Outputs.az02
+    Export:
+      Name: !Sub "${project}-${environment}-shared-az02"
+  azList:
+    Description: AZ Comma Separated List
+    Value: !GetAtt Network.Outputs.azList
+    Export:
+      Name: !Sub "${project}-${environment}-shared-azList"
+  publicSubnet01Id:
+    Description: Public subnet 1
+    Value: !GetAtt Network.Outputs.publicSubnet01Id
+    Export:
+      Name: !Sub "${project}-${environment}-shared-publicSubnet01Id"
+  publicSubnet02Id:
+    Description: Public subnet 2
+    Value: !GetAtt Network.Outputs.publicSubnet02Id
+    Export:
+      Name: !Sub "${project}-${environment}-shared-publicSubnet02Id"
+  publicSubnetsIdList:
+    Description: Public subnet Ids Comma Separated List
+    Value: !GetAtt Network.Outputs.publicSubnetsIdList
+    Export:
+      Name: !Sub "${project}-${environment}-shared-publicSubnetsIdList"
+  privateSubnet01Id:
+    Description: Private app subnet 1
+    Value: !GetAtt Network.Outputs.privateSubnet01Id
+    Export:
+      Name: !Sub "${project}-${environment}-shared-privateSubnet01Id"
+  privateSubnet02Id:
+    Description: Private app subnet 2
+    Value: !GetAtt Network.Outputs.privateSubnet02Id
+    Export:
+      Name: !Sub "${project}-${environment}-shared-privateSubnet02Id"
+  privateSubnetsIdList:
+    Description: Private subnet Ids Comma Separated List
+    Value: !GetAtt Network.Outputs.privateSubnetsIdList
+    Export:
+      Name: !Sub "${project}-${environment}-shared-privateSubnetsIdList"
   certificateARN:
     Value: !GetAtt Certificate.Outputs.certificateARN
     Export:

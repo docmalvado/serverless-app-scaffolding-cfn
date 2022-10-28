@@ -234,10 +234,10 @@ Resources:
         project: !Ref project
         vpcId:
           Fn::ImportValue:
-            !Sub ${project}-base-vpcId
+            !Sub ${project}-${environment}-shared-vpcId
         lbSubnetsIdList: 
           Fn::ImportValue:
-            !If [isPublicLB, !Sub "${project}-base-publicSubnetsIdList", !Sub "${project}-base-privateSubnetsIdList"]
+            !If [isPublicLB, !Sub "${project}-${environment}-shared-publicSubnetsIdList", !Sub "${project}-${environment}-shared-privateSubnetsIdList"]
         loadBalancerPort: !Ref loadBalancerPort
         publicLB: !Ref publicLB
         useHTTPS: !Ref useHTTPS
@@ -269,12 +269,12 @@ Resources:
             !Sub '${project}-${environment}-cluster-clusterName'
         vpcId: 
           Fn::ImportValue:
-            !Sub ${project}-base-vpcId
+            !Sub ${project}-${environment}-shared-vpcId
         loadBalancerSecurityGroupId: !GetAtt LoadBalancer.Outputs.loadBalancerSecurityGroupId
         loadBalancerListenerARN: !GetAtt LoadBalancer.Outputs.loadBalancerListenerARN
         serviceSubnetsIdList: 
           Fn::ImportValue:
-            !Sub "${project}-base-privateSubnetsIdList"
+            !Sub "${project}-${environment}-shared-privateSubnetsIdList"
         namespaceId: 
           Fn::ImportValue:
             !Sub '${project}-${environment}-cluster-namespaceId'
