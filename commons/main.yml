@@ -26,14 +26,14 @@ Resources:
   GitConnection:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/base/modules/codestar.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/commons/modules/codestar.yml
       Parameters: 
         project: !Ref project
 
   PipelineBucket:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/base/modules/s3.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/commons/modules/s3.yml
       Parameters: 
         bucketName: !Sub ${project}-pipeline-artifacts-${AWS::Region}
 
@@ -41,12 +41,12 @@ Outputs:
   gitConnectionARN:
     Value: !GetAtt GitConnection.Outputs.gitConnectionARN
     Export:
-      Name: !Sub "${project}-base-gitConnectionARN"
+      Name: !Sub "${project}-commons-gitConnectionARN"
   pipelineBucketName:
     Value: !GetAtt PipelineBucket.Outputs.bucketName
     Export:
-      Name: !Sub "${project}-base-pipelineBucketName"
+      Name: !Sub "${project}-commons-pipelineBucketName"
   pipelineBucketDomainName:
     Value: !GetAtt PipelineBucket.Outputs.bucketDomainName
     Export:
-      Name: !Sub "${project}-base-pipelineBucketDomainName"
+      Name: !Sub "${project}-commons-pipelineBucketDomainName"
