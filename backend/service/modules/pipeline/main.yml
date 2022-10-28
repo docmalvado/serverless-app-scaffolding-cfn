@@ -37,6 +37,12 @@ Parameters:
     Type: String
   gitConnectionArn:
     Type: String
+  automaticDeploy:
+    Type: String
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
 Resources:
   Permissions:
     Type: AWS::CloudFormation::Stack
@@ -75,3 +81,4 @@ Resources:
         ecsClusterName: !Ref ecsClusterName
         ecsServiceName: !Ref ecsServiceName
         deployService: !Ref deployService
+        automaticDeploy: !Ref automaticDeploy

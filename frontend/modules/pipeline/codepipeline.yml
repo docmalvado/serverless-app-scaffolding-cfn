@@ -27,6 +27,12 @@ Parameters:
     Type: String
   deploymentBucket:
     Type: String
+  automaticDeploy:
+    Type: String
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
 Resources:
   CodePipelineProject:
     Type: AWS::CodePipeline::Pipeline
@@ -51,7 +57,7 @@ Resources:
                 FullRepositoryId: !Ref repositoryName
                 BranchName: !Ref repositoryBranch
                 OutputArtifactFormat: "CODEBUILD_CLONE_REF"
-                DetectChanges: false
+                DetectChanges: !Ref automaticDeploy
               RunOrder: 1
               OutputArtifacts:
                 - Name: Source

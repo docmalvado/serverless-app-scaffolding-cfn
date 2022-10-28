@@ -27,6 +27,12 @@ Parameters:
     Type: String
   gitConnectionArn:
     Type: String
+  automaticDeploy:
+    Type: String
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
 Resources:
   Permissions:
     Type: AWS::CloudFormation::Stack
@@ -61,3 +67,4 @@ Resources:
         gitConnectionArn: !Ref gitConnectionArn
         buildProjectName: !GetAtt BuildProject.Outputs.codeBuildProjectName
         deploymentBucket: !Ref deploymentBucket
+        automaticDeploy: !Ref automaticDeploy

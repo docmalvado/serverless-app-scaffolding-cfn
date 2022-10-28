@@ -40,6 +40,12 @@ Parameters:
   deploymentTimeout:
     Type: String
     Default: '5'
+  automaticDeploy:
+    Type: String
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
 Conditions:
   doDeploy: !Equals 
     - !Ref deployService
@@ -68,7 +74,7 @@ Resources:
                 FullRepositoryId: !Ref repositoryName
                 BranchName: !Ref repositoryBranch
                 OutputArtifactFormat: "CODEBUILD_CLONE_REF"
-                DetectChanges: false
+                DetectChanges: !Ref automaticDeploy
               RunOrder: 1
               OutputArtifacts:
                 - Name: Source
