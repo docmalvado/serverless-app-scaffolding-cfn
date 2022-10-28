@@ -113,6 +113,14 @@ Metadata:
         default: "Parent Hosted Zone Id:"
       parentHostedZoneName:
         default: "Parent Hosted Zone Name:"
+Rules:
+  DifferentAZs:
+    Assertions:
+      - Assert: !Not 
+          - !Equals 
+            - !Ref availabilityZone1
+            - !Ref availabilityZone2
+        AssertDescription: The Availability Zones must be different
 Conditions:
   isNonProd: !Not 
     - !Equals 
