@@ -24,6 +24,23 @@ Parameters:
   imageVersion:
     Type: String
     Default: latest
+  loadBalancerPort:
+    Type: Number
+    Default: 80
+  publicLB:
+    Type: String
+    Description: Do you want the load balancer facing internet?
+    Default: 'true'
+    AllowedValues:
+      - 'true'
+      - 'false'
+  useHTTPS:
+    Type: String
+    Description: Do you want to use HTTPS certificate?
+    Default: 'true'
+    AllowedValues:
+      - 'true'
+      - 'false'
   containerSize:
     Type: String
     Description: CPU Size | RAM Size
@@ -134,6 +151,12 @@ Metadata:
           - autoScalingTargetValue
           - deployService
       - Label:
+          default: Load balancer
+        Parameters:
+          - loadBalancerPort
+          - publicLB
+          - useHTTPS
+      - Label:
           default: Other information
         Parameters:
           - cfnBucketName
@@ -158,6 +181,12 @@ Metadata:
         default: "Service health check path:"
       imageVersion:
         default: "Image version:"
+      loadBalancerPort:
+        default: "Load balancer port:"
+      publicLB:
+        default: "Is the LB Public?"
+      useHTTPS:
+        default: "Use HTTPS?"
       containerSize:
         default: "Container size:"
       containerPort:
@@ -173,6 +202,9 @@ Metadata:
 Conditions:
   doDeploy: !Equals 
     - !Ref deployService
+    - 'true'
+  isPublicLB: !Equals 
+    - !Ref publicLB
     - 'true'
 Resources:
   TaskRoles:
@@ -193,6 +225,36 @@ Resources:
         environment: !Ref environment
         service: !Ref serviceName
 
+  LoadBalancer:
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/cluster/modules/load-balancer.yml
+      Parameters: 
+        environment: !Ref environment
+        project: !Ref project
+        vpcId:
+          Fn::ImportValue:
+            !Sub ${project}-base-vpcId
+        lbSubnetsIdList: 
+          Fn::ImportValue:
+            !If [isPublicLB, !Sub "${project}-base-publicSubnetsIdList", !Sub "${project}-base-privateSubnetsIdList"]
+        loadBalancerPort: !Ref loadBalancerPort
+        publicLB: !Ref publicLB
+        useHTTPS: !Ref useHTTPS
+        certificateARN:
+          Fn::ImportValue:
+            !Sub "${project}-${environment}-shared-certificateARN"
+        hostedZoneId:
+          Fn::ImportValue:
+            !Sub "${project}-${environment}-shared-hostedZoneId"
+        loadbalancerDomainName:
+          Fn::Sub:
+            - ${subDomain}.${domainName}
+            - subDomain: !Ref serviceName
+              domainName:
+                Fn::ImportValue:
+                  !Sub "${project}-${environment}-shared-hostedZoneName"
+
   Service:
     Type: AWS::CloudFormation::Stack
     Condition: doDeploy
@@ -208,12 +270,8 @@ Resources:
         vpcId: 
           Fn::ImportValue:
             !Sub ${project}-base-vpcId
-        loadBalancerSecurityGroupId:
-          Fn::ImportValue:
-            !Sub '${project}-${environment}-cluster-loadBalancerSecurityGroupId'
-        loadBalancerListenerARN: 
-          Fn::ImportValue:
-            !Sub '${project}-${environment}-cluster-loadBalancerListenerARN'
+        loadBalancerSecurityGroupId: !GetAtt LoadBalancer.Outputs.loadBalancerSecurityGroupId
+        loadBalancerListenerARN: !GetAtt LoadBalancer.Outputs.loadBalancerListenerARN
         serviceSubnetsIdList: 
           Fn::ImportValue:
             !Sub "${project}-base-privateSubnetsIdList"
@@ -255,4 +313,19 @@ Resources:
         repositoryBranch: !Ref repositoryBranch
         deployService: !Ref deployService
 
-# Outputs:
+Outputs:
+  loadBalancerEndpoint:
+    Description: Endpoint
+    Value: !GetAtt LoadBalancer.Outputs.loadBalancerEndpoint
+    Export:
+      Name: !Sub '${project}-${environment}-${serviceName}-loadBalancerEndpoint'
+  loadBalancerSecurityGroupId:
+    Description: LB Security Group Id
+    Value: !GetAtt LoadBalancer.Outputs.loadBalancerSecurityGroupId
+    Export:
+      Name: !Sub '${project}-${environment}-${serviceName}-loadBalancerSecurityGroupId'
+  loadBalancerListenerARN:
+    Description: LB Listener ARN
+    Value: !GetAtt LoadBalancer.Outputs.loadBalancerListenerARN
+    Export:
+      Name: !Sub '${project}-${environment}-${serviceName}-loadBalancerListenerARN'

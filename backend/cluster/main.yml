@@ -12,27 +12,6 @@ Parameters:
       - prod
   cfnBucketName:
     Type: String
-  loadBalancerPort:
-    Type: Number
-    Default: 80
-  publicLB:
-    Type: String
-    Description: Do you want the load balancer facing internet?
-    Default: 'true'
-    AllowedValues:
-      - 'true'
-      - 'false'
-  useHTTPS:
-    Type: String
-    Description: Do you want to use HTTPS certificate?
-    Default: 'true'
-    AllowedValues:
-      - 'true'
-      - 'false'
-  backendSubDomain:
-    Type: String
-    Description: "Subdomain for the backend, E.g: api"
-    Default: api
 Metadata:
   "AWS::CloudFormation::Interface":
     ParameterGroups:
@@ -45,10 +24,6 @@ Metadata:
           default: Other information
         Parameters:
           - cfnBucketName
-          - loadBalancerPort
-          - publicLB
-          - useHTTPS
-          - backendSubDomain
     ParameterLabels:
       project:
         default: "Project's name:"
@@ -56,18 +31,6 @@ Metadata:
         default: "Project's environment:"
       cfnBucketName:
         default: "Cloudformation bucket:"
-      loadBalancerPort:
-        default: "Load balancer port:"
-      backendSubDomain:
-        default: "Backend subdomain:"
-      publicLB:
-        default: "Is the LB Public?"
-      useHTTPS:
-        default: "Use HTTPS?"
-Conditions:
-  isPublicLB: !Equals 
-    - !Ref publicLB
-    - 'true'
 Resources:
   ECSCluster:
     Type: AWS::CloudFormation::Stack
@@ -91,36 +54,6 @@ Resources:
         vpcId:
           Fn::ImportValue:
             !Sub ${project}-base-vpcId
-  
-  LoadBalancer:
-    Type: AWS::CloudFormation::Stack
-    Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/cluster/modules/load-balancer.yml
-      Parameters: 
-        environment: !Ref environment
-        project: !Ref project
-        vpcId:
-          Fn::ImportValue:
-            !Sub ${project}-base-vpcId
-        lbSubnetsIdList: 
-          Fn::ImportValue:
-            !If [isPublicLB, !Sub "${project}-base-publicSubnetsIdList", !Sub "${project}-base-privateSubnetsIdList"]
-        loadBalancerPort: !Ref loadBalancerPort
-        publicLB: !Ref publicLB
-        useHTTPS: !Ref useHTTPS
-        certificateARN:
-          Fn::ImportValue:
-            !Sub "${project}-${environment}-shared-certificateARN"
-        hostedZoneId:
-          Fn::ImportValue:
-            !Sub "${project}-${environment}-shared-hostedZoneId"
-        loadbalancerDomainName:
-          Fn::Sub:
-            - ${backendSubDomain}.${domainName}
-            - backendSubDomain: !Ref backendSubDomain
-              domainName:
-                Fn::ImportValue:
-                  !Sub "${project}-${environment}-shared-hostedZoneName"
 
   TokensSecret:
     Type: AWS::CloudFormation::Stack
@@ -166,21 +99,6 @@ Outputs:
     Value: !GetAtt ECSCluster.Outputs.containerInternalSecurityGroupId
     Export:
       Name: !Sub '${project}-${environment}-cluster-containerInternalSecurityGroupId'
-  loadBalancerEndpoint:
-    Description: Endpoint
-    Value: !GetAtt LoadBalancer.Outputs.loadBalancerEndpoint
-    Export:
-      Name: !Sub '${project}-${environment}-cluster-loadBalancerEndpoint'
-  loadBalancerSecurityGroupId:
-    Description: LB Security Group Id
-    Value: !GetAtt LoadBalancer.Outputs.loadBalancerSecurityGroupId
-    Export:
-      Name: !Sub '${project}-${environment}-cluster-loadBalancerSecurityGroupId'
-  loadBalancerListenerARN:
-    Description: LB Listener ARN
-    Value: !GetAtt LoadBalancer.Outputs.loadBalancerListenerARN
-    Export:
-      Name: !Sub '${project}-${environment}-cluster-loadBalancerListenerARN'
   namespaceId:
     Description: Namespace Id
     Value: !GetAtt DNSNamespace.Outputs.namespaceId
