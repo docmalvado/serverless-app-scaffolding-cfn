@@ -25,15 +25,9 @@ Outputs:
   imageRepositoryName:
     Description: Image Repository Name
     Value: !Ref ImageRepository
-    Export:
-      Name: !Sub '${AWS::StackName}-imageRepositoryName'
   imageRepositoryURI:
     Description: Image Repository URI
     Value: !GetAtt ImageRepository.RepositoryUri
-    Export:
-      Name: !Sub '${AWS::StackName}-imageRepositoryURI'
   imageRepositoryARN:
     Description: Image Repository ARN
     Value: !GetAtt ImageRepository.Arn
-    Export:
-      Name: !Sub '${AWS::StackName}-imageRepositoryARN'
