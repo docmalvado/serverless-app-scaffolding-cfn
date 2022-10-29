@@ -3,16 +3,16 @@ Complete serverless application scaffolding in Cloudformation.
 
 ## 01. Commons
 
-[Details](commons/README.md) 
+[Details](commons/) 
 
 ## 02. shared
 
-[Details](shared/README.md) 
+[Details](shared/) 
 
 ## 03. Backend
 
-[Details](backend/README.md) 
+[Details](backend/) 
 
 ## 04. Frontend
 
-[Details](frontend/README.md) 
+[Details](frontend/) 
