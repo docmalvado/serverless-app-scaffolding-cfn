@@ -31,6 +31,10 @@ Metadata:
         default: "Project's environment:"
       cfnBucketName:
         default: "Cloudformation bucket:"
+Conditions:
+  isProd: !Equals 
+    - !Ref environment
+    - prod
 Resources:
   ECSCluster:
     Type: AWS::CloudFormation::Stack
@@ -48,20 +52,21 @@ Resources:
     Properties: 
       TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/cluster/modules/dns-namespace.yml
       Parameters: 
-        environment: !Ref environment
         project: !Ref project
-        namespace: !Sub "${project}.net"
+        environment: !Ref environment
+        namespace: !If [isProd, !Sub "${project}.io", !Sub "${environment}.${project}.io"]
         vpcId:
           Fn::ImportValue:
             !Sub ${project}-${environment}-shared-vpcId
 
-  TokensSecret:
+  DockerHubSecret:
     Type: AWS::CloudFormation::Stack
     Properties: 
       TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/cluster/modules/secrets-manager.yml
       Parameters: 
         project: !Ref project
-        name: tokens
+        environment: !Ref environment
+        name: dockerhub
         secretTemplate: |
           {
             "DOCKER_HUB_USER": "",
@@ -104,13 +109,13 @@ Outputs:
     Value: !GetAtt DNSNamespace.Outputs.namespaceId
     Export:
       Name: !Sub '${project}-${environment}-cluster-namespaceId'
-  tokensSecretARN:
+  dockerHubSecretARN:
     Description: Secret ARN
-    Value: !GetAtt TokensSecret.Outputs.secretARN
+    Value: !GetAtt DockerHubSecret.Outputs.secretARN
     Export:
-      Name: !Sub "${project}-${environment}-cluster-tokensSecretARN"
-  tokensSecretName:
+      Name: !Sub "${project}-${environment}-cluster-dockerHubSecretARN"
+  dockerHubSecretName:
     Description: Secret Name
-    Value: !GetAtt TokensSecret.Outputs.secretName
+    Value: !GetAtt DockerHubSecret.Outputs.secretName
     Export:
-      Name: !Sub "${project}-${environment}-cluster-tokensSecretName"
+      Name: !Sub "${project}-${environment}-cluster-dockerHubSecretName"

@@ -39,10 +39,10 @@ Resources:
             Value: !Ref service
           - Name: DOCKER_HUB_USER
             Type: SECRETS_MANAGER
-            Value: !Sub secm-${project}-tokens:DOCKER_HUB_USER
+            Value: !Sub secm-${project}-${environment}-dockerhub:DOCKER_HUB_USER
           - Name: DOCKER_HUB_TOKEN
             Type: SECRETS_MANAGER
-            Value: !Sub secm-${project}-tokens:DOCKER_HUB_TOKEN
+            Value: !Sub secm-${project}-${environment}-dockerhub:DOCKER_HUB_TOKEN
         Image: aws/codebuild/amazonlinux2-x86_64-standard:4.0
         ImagePullCredentialsType: CODEBUILD
         PrivilegedMode: True

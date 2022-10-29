@@ -48,7 +48,8 @@ Resources:
               - Action:
                   - 'secretsmanager:GetSecretValue'
                 Effect: Allow
-                Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:secm-${project}-tokens-*
+                Resource:
+                  - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:secm-${project}-${environment}-dockerhub-*
         - PolicyName: ecrAuth
           PolicyDocument:
             Version: 2012-10-17

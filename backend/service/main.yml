@@ -241,10 +241,11 @@ Resources:
   LoadBalancer:
     Type: AWS::CloudFormation::Stack
     Properties: 
-      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/cluster/modules/load-balancer.yml
+      TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/backend/service/modules/load-balancer.yml
       Parameters: 
-        environment: !Ref environment
         project: !Ref project
+        environment: !Ref environment
+        service: !Ref serviceName
         vpcId:
           Fn::ImportValue:
             !Sub ${project}-${environment}-shared-vpcId

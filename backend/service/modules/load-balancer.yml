@@ -1,14 +1,15 @@
 AWSTemplateFormatVersion: 2010-09-09 
 Description: Create Loadbalancer.
 Parameters:
+  project:
+    Type: String
   environment:
     Type: String
-    Default: dev
     AllowedValues:
       - dev
       - qa
       - prod
-  project:
+  service:
     Type: String
   vpcId:
     Type: String
@@ -46,8 +47,8 @@ Resources:
   LoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Sub 'secg-${project}-${environment}-lb'
-      GroupDescription: !Sub 'SG for LB ${project}-${environment}'
+      GroupName: !Sub 'secg-${project}-${service}-${environment}-lb'
+      GroupDescription: !Sub 'SG for LB ${project}-${service}-${environment}'
       VpcId: !Ref vpcId
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -63,12 +64,12 @@ Resources:
           - !Ref AWS::NoValue
       Tags:
         - Key: Name
-          Value: !Sub 'secg-${project}-${environment}-lb'
+          Value: !Sub 'secg-${project}-${service}-${environment}-lb'
 
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Name: !Sub 'elb-${project}-${environment}'
+      Name: !Sub 'elb-${project}-${service}-${environment}'
       # "internet-facing" or "internal"
       Scheme: !If [isPublicELB, 'internet-facing', 'internal']
       LoadBalancerAttributes:
@@ -80,7 +81,7 @@ Resources:
       Subnets: !Ref lbSubnetsIdList
       Tags:
         - Key: Name
-          Value: !Sub 'elb-${project}-${environment}'
+          Value: !Sub 'elb-${project}-${service}-${environment}'
 
   LoadBalancerListenerHTTP:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -88,14 +89,19 @@ Resources:
       - LoadBalancer    
     Properties:
       DefaultActions:
-        - Type: "redirect"
-          RedirectConfig:
-            Protocol: "HTTPS"
-            Port: 443
-            Host: "#{host}"
-            Path: "/#{path}"
-            Query: "#{query}"
-            StatusCode: "HTTP_301"
+        - !If
+          - isHTTPS
+          - Type: "redirect"
+            RedirectConfig:
+              Protocol: "HTTPS"
+              Port: 443
+              Host: "#{host}"
+              Path: "/#{path}"
+              Query: "#{query}"
+              StatusCode: "HTTP_301"
+          - Type: fixed-response
+            FixedResponseConfig: 
+              StatusCode: 400
       LoadBalancerArn: !Ref LoadBalancer
       Port: !Ref loadBalancerPort
       Protocol: HTTP

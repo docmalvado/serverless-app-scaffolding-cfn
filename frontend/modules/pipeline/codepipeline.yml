@@ -12,6 +12,8 @@ Parameters:
       - dev
       - qa
       - prod
+  subdomain:
+    Type: String
   artifactsBucketName:
     Type: String
   repositoryName:
@@ -37,7 +39,7 @@ Resources:
   CodePipelineProject:
     Type: AWS::CodePipeline::Pipeline
     Properties: 
-      Name: !Sub ${project}-${environment}-frontend-pipeline
+      Name: !Sub ${project}-${environment}-frontend-${subdomain}-pipeline
       ArtifactStore:
         Location: !Ref artifactsBucketName
         Type: S3

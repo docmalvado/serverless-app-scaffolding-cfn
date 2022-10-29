@@ -28,7 +28,6 @@ Parameters:
     Description: "Subdomain for the frontend, E.g: www"
     Default: www
     MinLength: "1"
-    MaxLength: "3"
   automaticDeploy:
     Type: String
     Description: Deploy frontend automatically on branch changes
@@ -36,6 +35,14 @@ Parameters:
     AllowedValues:
       - 'true'
       - 'false'
+  buildInstanceComputeType:
+    Type: String
+    Default: BUILD_GENERAL1_SMALL
+    AllowedValues:
+      - BUILD_GENERAL1_SMALL
+      - BUILD_GENERAL1_MEDIUM
+      - BUILD_GENERAL1_LARGE
+      - BUILD_GENERAL1_2XLARGE
 Metadata:
   "AWS::CloudFormation::Interface":
     ParameterGroups:
@@ -50,6 +57,7 @@ Metadata:
           - frontendRepository
           - repositoryBranch
           - frontendSubdomain
+          - buildInstanceComputeType
           - automaticDeploy
       - Label:
           default: Other information
@@ -70,13 +78,15 @@ Metadata:
         default: "Frontend subdomain:"
       automaticDeploy:
         default: "Automatic deploy?"
+      buildInstanceComputeType:
+        default: "Build instance Compute type:"
 Resources:
   WebsiteBucket:
     Type: AWS::CloudFormation::Stack
     Properties: 
       TemplateURL: !Sub https://s3.amazonaws.com/${cfnBucketName}/${project}/frontend/modules/s3.yml
       Parameters: 
-        bucketName: !Sub ${project}-${environment}-frontend-${AWS::Region}
+        bucketName: !Sub ${project}-${environment}-frontend-${frontendSubdomain}-${AWS::Region}
 
   Distribution:
     Type: AWS::CloudFormation::Stack
@@ -103,6 +113,7 @@ Resources:
       Parameters: 
         project: !Ref project
         environment: !Ref environment
+        subdomain: !Ref frontendSubdomain
         cfnBucketName: !Ref cfnBucketName
         frontendRepository: !Ref frontendRepository
         repositoryBranch: !Ref repositoryBranch
@@ -114,6 +125,7 @@ Resources:
           Fn::ImportValue:
             !Sub "${project}-commons-gitConnectionARN"
         automaticDeploy: !Ref automaticDeploy
+        buildInstanceComputeType: !Ref buildInstanceComputeType
 
 Outputs:
   websiteBucketName:

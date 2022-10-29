@@ -13,6 +13,8 @@ Parameters:
       - dev
       - qa
       - prod
+  subdomain:
+    Type: String
   cfnBucketName:
     Type: String
     Description: Bucket that store cfn modules
@@ -33,6 +35,14 @@ Parameters:
     AllowedValues:
       - 'true'
       - 'false'
+  buildInstanceComputeType:
+    Type: String
+    Default: BUILD_GENERAL1_SMALL
+    AllowedValues:
+      - BUILD_GENERAL1_SMALL
+      - BUILD_GENERAL1_MEDIUM
+      - BUILD_GENERAL1_LARGE
+      - BUILD_GENERAL1_2XLARGE
 Resources:
   Permissions:
     Type: AWS::CloudFormation::Stack
@@ -41,6 +51,7 @@ Resources:
       Parameters: 
         project: !Ref project
         environment: !Ref environment
+        subdomain: !Ref subdomain
         artifactsBucketName: !Ref artifactsBucketName
         deploymentBucketName: !Ref deploymentBucket
 
@@ -51,6 +62,8 @@ Resources:
       Parameters: 
         project: !Ref project
         environment: !Ref environment
+        subdomain: !Ref subdomain
+        computeType: !Ref buildInstanceComputeType
         codeBuildRoleArn: !GetAtt Permissions.Outputs.buildRoleArn
         
   PipelineProject:
@@ -60,6 +73,7 @@ Resources:
       Parameters: 
         project: !Ref project
         environment: !Ref environment
+        subdomain: !Ref subdomain
         artifactsBucketName: !Ref artifactsBucketName
         repositoryName: !Ref frontendRepository
         repositoryBranch: !Ref repositoryBranch
